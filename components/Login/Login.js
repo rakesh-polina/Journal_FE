@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { API_ENDPOINTS } from '../../src/config';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const LoginScreen = () => {
     console.log('Request Body:', requestData);
 
     // Make an HTTP request to your backend endpoint for user authentication
-    fetch('http://192.168.1.11:3001/users/login', {
+    fetch(API_ENDPOINTS.LOGIN, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

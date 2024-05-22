@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import DatePicker from 'react-native-date-picker';
+import { API_ENDPOINTS } from '../../src/config';
 
 
 function CreateUser({navigation}) {
@@ -18,7 +19,7 @@ function CreateUser({navigation}) {
 
     const userData = { username, name, email, phone, bday };
 
-    fetch('http://192.168.1.11:3001/users/', {
+    fetch(API_ENDPOINTS.USERS, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
