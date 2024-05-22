@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { API_ENDPOINTS } from '../../src/config';
 
 const Password = ({route,navigation}) => {
   const [password, setPassword] = useState('');
@@ -30,7 +31,7 @@ const Password = ({route,navigation}) => {
     console.log('Password:', password);
 
      // Fetch user data using email
-  fetch(`http://192.168.1.11:3001/users/${email}`,{
+  fetch(API_ENDPOINTS.USER(email),{
     method: 'GET'
   })
   .then(response => {
@@ -44,7 +45,7 @@ const Password = ({route,navigation}) => {
     userData.password = password;
 
     // Update user data with the appended password
-    return fetch(`http://192.168.1.11:3001/users/${email}`, {
+    return fetch(API_ENDPOINTS.USER(email), {
       method: 'PUT', // Use PUT method for update
       headers: {
         'Content-Type': 'application/json',
