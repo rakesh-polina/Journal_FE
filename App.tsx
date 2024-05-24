@@ -13,6 +13,7 @@ import CreateRemainder from './components/CreateRemainder';
 import Day from './components/Day';
 import Profile from './components/Profile';
 import { Text, View } from 'react-native';
+import storage from './src/storage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -68,6 +69,34 @@ const Voided = () =>{
 
 const App = () => {
     const [loggedIn, setLoggedIn] = useState<boolean>(false); // State to track login status
+    storage.load({
+            key: 'loginState',
+            // autoSync: true,
+            // syncInBackground: true,
+            // syncParams: {
+            // extraFetchOptions: {
+            //     // blahblah
+            // },
+            // someFlag: true
+            // }
+        })
+        .then(ret => {
+            if (ret.email) {
+                setLoggedIn(true);
+            }
+        })
+        .catch(err => {
+            console.warn(err.message);
+            switch (err.name) {
+            case 'NotFoundError':
+                // TODO;
+                break;
+            case 'ExpiredError':
+                // TODO
+                break;
+            }
+        });
+
 
     return (
         // <Calendar/>

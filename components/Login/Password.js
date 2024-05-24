@@ -61,6 +61,7 @@ const Password = ({route,navigation}) => {
   })
   .then(data => {
     console.log('Account created successfully:', data);
+    navigation.navigate('MainNav');
     // Optionally, you can navigate to a different screen upon successful account creation
   })
   .catch(error => {
