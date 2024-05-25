@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from '../../src/config';
 import storage from '../../src/storage';
 
 const LoginScreen = () => {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,15 +39,26 @@ const LoginScreen = () => {
         return response.json();
       })
       .then(data => {
+        const { user } = data; // Extracting user data from the response
+
+        // Storing user data in variables
+        const name = user.name;
+        const username = user.username;
+        const phone = user.phone;
+        const bday = user.bday;
+
         storage.save({
           key: 'loginState',
           data: {
+            name: name,
+            username: username,
+            phone: phone,
+            bday: bday,
             email: email,
             password: password,
           },
           expires: null, 
         })
-        // setLoggedIn(true);
         navigation.navigate("MainNav");
         console.log('Login successful:', data);
       })
