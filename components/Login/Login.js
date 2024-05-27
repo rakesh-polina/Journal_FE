@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
+import storage from '../../src/storage';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
 
   const navigation = useNavigation();
 
@@ -36,7 +38,16 @@ const LoginScreen = () => {
         return response.json();
       })
       .then(data => {
-        setLoggedIn(true);
+        storage.save({
+          key: 'loginState',
+          data: {
+            email: email,
+            password: password,
+          },
+          expires: null, 
+        })
+        // setLoggedIn(true);
+        navigation.navigate("MainNav");
         console.log('Login successful:', data);
       })
       .catch(error => {
