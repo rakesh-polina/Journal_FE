@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { API_ENDPOINTS } from '../../src/config';
 
@@ -42,15 +42,12 @@ const Password = ({route,navigation}) => {
   })
   .then(userData => {
     // Append password to user data
-    userData.password = password;
-
-    // Update user data with the appended password
-    return fetch(API_ENDPOINTS.USER(email), {
-      method: 'PUT', // Use PUT method for update
+    return fetch(API_ENDPOINTS.SET_PASSWORD, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData), // Send updated user data
+      body: JSON.stringify({ userId: userData._id, password }), // Send userId and password
     });
   })
   .then(response => {
@@ -61,6 +58,7 @@ const Password = ({route,navigation}) => {
   })
   .then(data => {
     console.log('Account created successfully:', data);
+    navigation.navigate('MainNav');
     // Optionally, you can navigate to a different screen upon successful account creation
   })
   .catch(error => {
@@ -102,7 +100,7 @@ const Password = ({route,navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'black',
   },
   scrollView: {
     flexGrow: 1,
