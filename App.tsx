@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Import the Icon component
@@ -7,13 +7,13 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
 import Home from './components/Home';
-import Remainder from './components/Remainder';
+import Reminder from './components/Reminder/Reminder';
 import { createStackNavigator } from '@react-navigation/stack';
 import CreateUser from './components/Login/CreateUser';
 import LoginScreen from './components/Login/Login';
 import Password from './components/Login/Password';
 import EventLog from './components/EventLog';
-import CreateRemainder from './components/CreateRemainder';
+import CreateReminder from './components/Reminder/CreateReminder';
 import Day from './components/Day';
 import Profile from './components/Profile';
 import HeaderButton from './components/cards/headerButton';
@@ -49,8 +49,34 @@ const CalendarNav = () => {
     )
 }
 
-const RemainderNav = () => {
-    return(
+const ReminderNav = () => {
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
+        .then(ret => {
+            if (ret.email) {
+                setEmail(ret.email);
+            }
+        })
+        .catch(err => {
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
+        });
+    }, []); // Empty dependency array to run this effect only once
+
+    // Render the navigator once the email is fetched
+    return email ? (
         <Stack.Navigator
             screenOptions={{
             headerStyle: {
@@ -65,11 +91,15 @@ const RemainderNav = () => {
             headerRight: () => <HeaderButton />,
           }}
           >
-            <Stack.Screen name="Remainder" component={Remainder}/>
-            <Stack.Screen name="CreateRemainder" component={CreateRemainder}/>
+            <Stack.Screen 
+                name="Reminder" 
+                component={Reminder} 
+                initialParams={{ email: email }}
+            />
+            <Stack.Screen name="CreateReminder" component={CreateReminder} initialParams={{ email: email }}/>
             <Stack.Screen name="Profile" component={Profile}/>
         </Stack.Navigator>
-    )
+    ) : null; // Return null if email is not yet fetched
 }
 
 const HomeNav = () => {
@@ -148,7 +178,7 @@ const MainNav = () => {
           >
             <Tab.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
             <Tab.Screen name="CalendarNav" component={CalendarNav} options={{ headerShown: false }}/>
-            <Tab.Screen name="RemainderNav" component={RemainderNav} options={{ headerShown: false }} />
+            <Tab.Screen name="ReminderNav" component={ReminderNav} options={{ headerShown: false }} />
         </Tab.Navigator>
             
     )
@@ -156,35 +186,35 @@ const MainNav = () => {
 
 const App = () => {
     const [loggedIn, setLoggedIn] = useState<boolean>(false); // State to track login status
+    // const [loggedIn, setLoggedIn] = useState<boolean>(true); //testing
     storage.load({
-            key: 'loginState',
-            // autoSync: true,
-            // syncInBackground: true,
-            // syncParams: {
-            // extraFetchOptions: {
-            //     // blahblah
-            // },
-            // someFlag: true
-            // }
-        })
-        .then(ret => {
-            if (ret.email) {
-                setLoggedIn(true);
-            }
-        })
-        .catch(err => {
-            console.warn(err.message);
-            switch (err.name) {
-            case 'NotFoundError':
-                // TODO;
-                break;
-            case 'ExpiredError':
-                // TODO
-                break;
-            }
-        });
-
-
+        key: 'loginState',
+        // autoSync: true,
+        // syncInBackground: true,
+        // syncParams: {
+        // extraFetchOptions: {
+        //     // blahblah
+        // },
+        // someFlag: true
+        // }
+    })
+    .then(ret => {
+        if (ret.email) {
+            setLoggedIn(true);
+        }
+    })
+    .catch(err => {
+        console.warn(err.message);
+        switch (err.name) {
+        case 'NotFoundError':
+            // TODO;
+            break;
+        case 'ExpiredError':
+            // TODO
+            break;
+        }
+    });
+    
     return (
         // <Calendar/>
         <NavigationContainer>
