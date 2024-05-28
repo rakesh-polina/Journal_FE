@@ -6,6 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  Image,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -38,6 +39,7 @@ function Home({navigation}) {
           }}>
           <TouchableOpacity onPress={() => navigation.navigate('Day')}>
             <Event/>
+
           </TouchableOpacity>
         </View>
       </ScrollView>
