@@ -1,71 +1,75 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import DateTimePicker from 'react-native-modal-datetime-picker';
-import Icon from 'react-native-vector-icons/Ionicons';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import moment from 'moment';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../src/config';
-import CustomCalendar from './CustomCalendar'; // Adjust the path as necessary
+import CustomCalendar from './CustomCalendar'; 
+import WheelTimePicker from './WheelTimePicker';
 
 const CreateReminder = ({ route, navigation }) => {
-  const { username } = route.params; // Get username from route params
-  const [note, setNote] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
-  const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
+  const { email, reminder } = route.params || {}; // Get email and reminder from route params
+  const [note, setNote] = useState(reminder ? reminder.note : '');
+  const [selectedDate, setSelectedDate] = useState(reminder ? moment(reminder.triggerDate).format('YYYY-MM-DD') : '');
+  const [selectedTime, setSelectedTime] = useState(reminder ? moment(reminder.triggerDate).format('HH:mm') : '');
 
   const handleSave = async () => {
-    const currentDateTime = new Date(); // Get the current date and time
-    const triggerDate = `${selectedDate} ${selectedTime}`;
-    const reminderData = { username, setDate: currentDateTime, triggerDate, note };
+    const currentDateTime = new Date();
+    const formattedTime = moment(selectedTime, 'HH:mm:ss.SSSZ').format('HH:mm');
+    const triggerDate = moment(`${selectedDate} ${formattedTime}`, 'YYYY-MM-DD HH:mm').toISOString();
+    const reminderData = { email, setDate: currentDateTime, triggerDate, note };
 
     try {
-      await axios.post(API_ENDPOINTS.REMINDER, { ...reminderData });
-      navigation.goBack(); // Navigate back after successful creation
+      if (reminder) {
+        await axios.put(API_ENDPOINTS.MODIFY_REMINDER(reminder._id), reminderData);
+      } else {
+        await axios.post(API_ENDPOINTS.REMINDER, reminderData);
+      }
+      navigation.goBack();
     } catch (error) {
-      console.error('Error creating reminder:', error);
-      // Handle error (e.g., show error message to user)
+      console.error('Error saving reminder:', error);
     }
   };
 
-  const handleDatePicked = (date) => {
-    setSelectedTime(moment(date).format('HH:mm'));
-    setIsDateTimePickerVisible(false);
+  const handleSnappedTime = (snappedTime) => {
+    setSelectedTime(snappedTime);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Remainders</Text>
-      <CustomCalendar onDateSelected={setSelectedDate} />
-      <TouchableOpacity onPress={() => setIsDateTimePickerVisible(true)}>
-        <View style={styles.dateTimeContainer}>
-          <Text style={styles.timeText}>{selectedTime ? selectedTime : 'Select Time'}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.header}>Reminders</Text>
+          <CustomCalendar onDateSelected={setSelectedDate} initialDate={selectedDate} />
+          <View style={styles.timePickerContainer}>
+            <WheelTimePicker onSnappedTime={handleSnappedTime} initialTime={selectedTime} />
+          </View>
+          <TextInput
+            style={styles.notesInput}
+            placeholder="Remind yourself..."
+            value={note}
+            onChangeText={setNote}
+            multiline
+          />
+          <TouchableOpacity style={styles.setButton} onPress={handleSave}>
+            <Text style={styles.setButtonText}>{reminder ? 'UPDATE REMINDER' : 'SET REMINDER'}</Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-      <DateTimePicker
-        isVisible={isDateTimePickerVisible}
-        mode="time"
-        onConfirm={handleDatePicked}
-        onCancel={() => setIsDateTimePickerVisible(false)}
-      />
-      <TextInput
-        style={styles.notesInput}
-        placeholder="Remind yourself..."
-        value={note}
-        onChangeText={setNote}
-        multiline
-      />
-      <TouchableOpacity style={styles.setButton} onPress={handleSave}>
-        <Text style={styles.setButtonText}>SET REMINDER</Text>
-      </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#e0e7ff',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#b3c7f9', // Light version of the card color
+    backgroundColor: '#b3c7f9',
     padding: 20,
   },
   header: {
@@ -74,17 +78,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  dateTimeContainer: {
-    backgroundColor: '#1e3a8a',
-    borderRadius: 10,
-    padding: 15,
+  timePickerContainer: {
     marginBottom: 20,
     alignItems: 'center',
-  },
-  timeText: {
-    fontSize: 24,
-    color: '#ffffff',
-    marginTop: 10,
   },
   notesInput: {
     backgroundColor: '#3b5998',

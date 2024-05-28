@@ -4,41 +4,47 @@ import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 
 const years = Array.from({ length: 11 }, (_, i) => moment().year() - 5 + i);
-const months = moment.months();
+const months = moment.monthsShort();
 
-const CustomCalendar = ({ onDateSelected }) => {
-  const [selectedYear, setSelectedYear] = useState(moment().year());
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [currentDate, setCurrentDate] = useState(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`);
+const CustomCalendar = ({ onDateSelected, initialDate }) => {
+  const initialMoment = initialDate ? moment(initialDate) : moment();
+  const [selectedYear, setSelectedYear] = useState(initialMoment.year());
+  const [selectedMonth, setSelectedMonth] = useState(initialMoment.month() + 1);
+  const [selectedDate, setSelectedDate] = useState(initialDate || '');
+  const [currentDate, setCurrentDate] = useState(initialMoment.format('YYYY-MM-DD'));
 
   const yearScrollViewRef = useRef(null);
   const monthScrollViewRef = useRef(null);
   const itemWidth = Dimensions.get('window').width / 5; // width for year and month items to show 5 items at a time
+  const monthItemWidth = Dimensions.get('window').width / 5;
 
   useEffect(() => {
     if (yearScrollViewRef.current) {
-      yearScrollViewRef.current.scrollTo({ x: itemWidth * (Math.floor(years.length / 2) - 2), animated: false });
+      const currentYearIndex = years.indexOf(selectedYear);
+      yearScrollViewRef.current.scrollTo({ x: itemWidth * currentYearIndex, animated: false });
     }
     if (monthScrollViewRef.current) {
-      monthScrollViewRef.current.scrollTo({ x: itemWidth * (Math.floor(months.length / 2) - 2), animated: false });
+      const currentMonthIndex = selectedMonth - 1;
+      monthScrollViewRef.current.scrollTo({ x: monthItemWidth * currentMonthIndex, animated: false });
     }
   }, []);
 
   useEffect(() => {
     setCurrentDate(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`);
-    console.log(selectedYear);
-    console.log(selectedMonth);
   }, [selectedYear, selectedMonth]);
 
   const handleYearMomentumScrollEnd = (event) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / itemWidth);
-    setSelectedYear(years[index + 2]);
+    if (index >= 0 && index < years.length) {
+      setSelectedYear(years[index]);
+    }
   };
 
   const handleMonthMomentumScrollEnd = (event) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / itemWidth);
-    setSelectedMonth(index + 3);
+    const index = Math.round(event.nativeEvent.contentOffset.x / monthItemWidth);
+    if (index >= 0 && index < months.length) {
+      setSelectedMonth(index + 1);
+    }
   };
 
   const renderYearItem = (year, index) => {
@@ -53,7 +59,7 @@ const CustomCalendar = ({ onDateSelected }) => {
   const renderMonthItem = (month, index) => {
     const isSelected = selectedMonth === index + 1;
     return (
-      <View key={month} style={[styles.item, { width: itemWidth }]}>
+      <View key={month} style={[styles.item, { width: monthItemWidth }]}>
         <Text style={[styles.text, isSelected && styles.selectedText]}>{month}</Text>
       </View>
     );
@@ -64,7 +70,7 @@ const CustomCalendar = ({ onDateSelected }) => {
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
-        contentContainerStyle={styles.container} 
+        contentContainerStyle={[styles.container, { paddingHorizontal: itemWidth * 2 }]} 
         onMomentumScrollEnd={handleYearMomentumScrollEnd}
         snapToInterval={itemWidth}
         decelerationRate="fast"
@@ -75,9 +81,9 @@ const CustomCalendar = ({ onDateSelected }) => {
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
-        contentContainerStyle={styles.container} 
+        contentContainerStyle={[styles.container, { paddingHorizontal: monthItemWidth * 2 }]} 
         onMomentumScrollEnd={handleMonthMomentumScrollEnd}
-        snapToInterval={itemWidth}
+        snapToInterval={monthItemWidth}
         decelerationRate="fast"
         ref={monthScrollViewRef}
       >
@@ -91,6 +97,9 @@ const CustomCalendar = ({ onDateSelected }) => {
           setSelectedDate(day.dateString);
           onDateSelected(day.dateString);
         }}
+        markedDates={{
+          [selectedDate]: { selected: true, selectedColor: '#1e3a8a' }
+        }}
         hideExtraDays={true}
         firstDay={1}
         enableSwipeMonths={true}
@@ -103,7 +112,7 @@ const CustomCalendar = ({ onDateSelected }) => {
           selectedDayBackgroundColor: '#1e3a8a',
           selectedDayTextColor: '#ffffff',
           todayTextColor: '#1e3a8a',
-          dayTextColor: '#2d4150',
+          dayTextColor: '#1e3a8a',
           textDisabledColor: '#d9e1e8',
           textDayFontWeight: '300',
           textMonthFontWeight: 'bold',

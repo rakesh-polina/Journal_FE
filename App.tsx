@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
@@ -29,17 +29,43 @@ const CalendarNav = () => {
 }
 
 const ReminderNav = () => {
-    return(
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
+        .then(ret => {
+            if (ret.email) {
+                setEmail(ret.email);
+            }
+        })
+        .catch(err => {
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
+        });
+    }, []); // Empty dependency array to run this effect only once
+
+    // Render the navigator once the email is fetched
+    return email ? (
         <Stack.Navigator>
             <Stack.Screen 
                 name="Reminder" 
                 component={Reminder} 
-                initialParams={{ username: 'neel999' }} // Replace 'testUser' with the username you want to test with
+                initialParams={{ email: email }}
             />
-            <Stack.Screen name="CreateReminder" component={CreateReminder} initialParams={{ username: 'neel999' }}/>
+            <Stack.Screen name="CreateReminder" component={CreateReminder} initialParams={{ email: email }}/>
             <Stack.Screen name="Profile" component={Profile}/>
         </Stack.Navigator>
-    )
+    ) : null; // Return null if email is not yet fetched
 }
 
 const HomeNav = () => {
@@ -54,9 +80,7 @@ const HomeNav = () => {
 
 const MainNav = () => {
     return (
-        // <Tab.Navigator>
-        // Testing
-        <Tab.Navigator initialRouteName="ReminderNav">
+        <Tab.Navigator>
         <Tab.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
         <Tab.Screen name="CalendarNav" component={CalendarNav} options={{ headerShown: false }}/>
         <Tab.Screen name="ReminderNav" component={ReminderNav} options={{ headerShown: false }} />
@@ -74,8 +98,8 @@ const Voided = () =>{
 }
 
 const App = () => {
-    // const [loggedIn, setLoggedIn] = useState<boolean>(false); // State to track login status
-    const [loggedIn, setLoggedIn] = useState<boolean>(true); //testing
+    const [loggedIn, setLoggedIn] = useState<boolean>(false); // State to track login status
+    // const [loggedIn, setLoggedIn] = useState<boolean>(true); //testing
     storage.load({
         key: 'loginState',
         // autoSync: true,
