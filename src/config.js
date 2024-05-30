@@ -1,5 +1,5 @@
 
-const BASE_URL = 'http://192.168.1.11:3001';
+const BASE_URL = 'http://10.227.63.223:3001';
 
 
 export const API_ENDPOINTS = {

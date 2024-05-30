@@ -5,14 +5,17 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../../src/config';
 import CustomCalendar from './CustomCalendar'; 
 import WheelTimePicker from './WheelTimePicker';
+import theme from '../../styles/theme'
 
 const CreateReminder = ({ route, navigation }) => {
   const { email, reminder } = route.params || {}; // Get email and reminder from route params
   const [note, setNote] = useState(reminder ? reminder.note : '');
   const [selectedDate, setSelectedDate] = useState(reminder ? moment(reminder.triggerDate).format('YYYY-MM-DD') : '');
   const [selectedTime, setSelectedTime] = useState(reminder ? moment(reminder.triggerDate).format('HH:mm') : '');
+  const [isPressed, setIsPressed] = useState(false);
 
   const handleSave = async () => {
+    setIsPressed(true);
     const currentDateTime = new Date();
     const formattedTime = moment(selectedTime, 'HH:mm:ss.SSSZ').format('HH:mm');
     const triggerDate = moment(`${selectedDate} ${formattedTime}`, 'YYYY-MM-DD HH:mm').toISOString();
@@ -38,11 +41,6 @@ const CreateReminder = ({ route, navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <Text style={styles.header}>Reminders</Text>
-          <CustomCalendar onDateSelected={setSelectedDate} initialDate={selectedDate} />
-          <View style={styles.timePickerContainer}>
-            <WheelTimePicker onSnappedTime={handleSnappedTime} initialTime={selectedTime} />
-          </View>
           <TextInput
             style={styles.notesInput}
             placeholder="Remind yourself..."
@@ -50,6 +48,10 @@ const CreateReminder = ({ route, navigation }) => {
             onChangeText={setNote}
             multiline
           />
+          <CustomCalendar onDateSelected={setSelectedDate} initialDate={selectedDate} />
+          <View style={styles.timePickerContainer}>
+            <WheelTimePicker onSnappedTime={handleSnappedTime} initialTime={selectedTime} />
+          </View>
           <TouchableOpacity style={styles.setButton} onPress={handleSave}>
             <Text style={styles.setButtonText}>{reminder ? 'UPDATE REMINDER' : 'SET REMINDER'}</Text>
           </TouchableOpacity>
@@ -62,42 +64,41 @@ const CreateReminder = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#fff',
   },
   scrollContainer: {
     flexGrow: 1,
   },
   container: {
     flex: 1,
-    backgroundColor: '#b3c7f9',
+    backgroundColor: '#fff',
+    justifyContent: 'space-between',
     padding: 20,
-  },
-  header: {
-    fontSize: 24,
-    color: '#1e3a8a',
-    marginBottom: 20,
-    textAlign: 'center',
+    paddingBottom: 0,
   },
   timePickerContainer: {
     marginBottom: 20,
     alignItems: 'center',
   },
   notesInput: {
-    backgroundColor: '#3b5998',
-    borderRadius: 10,
+    backgroundColor: theme.greyLight,
+    elevation: 3,
+    borderRadius: 20,
     padding: 15,
     marginBottom: 20,
-    color: '#ffffff',
+    color: theme.primaryText,
     fontSize: 18,
+    height: 90,
+    textAlignVertical: 'top',
   },
   setButton: {
-    backgroundColor: '#1e3a8a',
-    borderRadius: 10,
+    backgroundColor: theme.primary,
+    borderRadius: 30,
     padding: 15,
     alignItems: 'center',
   },
   setButtonText: {
-    fontSize: 18,
+    fontSize: 22,
     color: '#ffffff',
   },
 });

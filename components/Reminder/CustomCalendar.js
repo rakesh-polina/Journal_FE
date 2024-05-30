@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
+import theme from '../../styles/theme';
 
 const years = Array.from({ length: 11 }, (_, i) => moment().year() - 5 + i);
-const months = moment.monthsShort();
+const months_lower = moment.monthsShort();
+const months = months_lower.map(month => month.toUpperCase());
 
 const CustomCalendar = ({ onDateSelected, initialDate }) => {
   const initialMoment = initialDate ? moment(initialDate) : moment();
@@ -67,28 +69,28 @@ const CustomCalendar = ({ onDateSelected, initialDate }) => {
 
   return (
     <View>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
-        contentContainerStyle={[styles.container, { paddingHorizontal: itemWidth * 2 }]} 
-        onMomentumScrollEnd={handleYearMomentumScrollEnd}
-        snapToInterval={itemWidth}
-        decelerationRate="fast"
-        ref={yearScrollViewRef}
-      >
-        {years.map(renderYearItem)}
-      </ScrollView>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
-        contentContainerStyle={[styles.container, { paddingHorizontal: monthItemWidth * 2 }]} 
-        onMomentumScrollEnd={handleMonthMomentumScrollEnd}
-        snapToInterval={monthItemWidth}
-        decelerationRate="fast"
-        ref={monthScrollViewRef}
-      >
-        {months.map(renderMonthItem)}
-      </ScrollView>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={[styles.container, { paddingHorizontal: itemWidth * 1.75 }]} 
+          onMomentumScrollEnd={handleYearMomentumScrollEnd}
+          snapToInterval={itemWidth}
+          decelerationRate="fast"
+          ref={yearScrollViewRef}
+        >
+          {years.map(renderYearItem)}
+        </ScrollView>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={[styles.container, { paddingHorizontal: monthItemWidth * 1.75 }]} 
+          onMomentumScrollEnd={handleMonthMomentumScrollEnd}
+          snapToInterval={monthItemWidth}
+          decelerationRate="fast"
+          ref={monthScrollViewRef}
+        >
+          {months.map(renderMonthItem)}
+        </ScrollView>
       <Calendar
         key={currentDate}
         current={currentDate}
@@ -98,7 +100,7 @@ const CustomCalendar = ({ onDateSelected, initialDate }) => {
           onDateSelected(day.dateString);
         }}
         markedDates={{
-          [selectedDate]: { selected: true, selectedColor: '#1e3a8a' }
+          [selectedDate]: { selected: true, selectedColor: theme.primary }
         }}
         hideExtraDays={true}
         firstDay={1}
@@ -106,14 +108,14 @@ const CustomCalendar = ({ onDateSelected, initialDate }) => {
         hideArrows={true} // Hide navigation arrows
         renderHeader={() => null} // Hide the header
         theme={{
-          backgroundColor: '#b3c7f9',
-          calendarBackground: '#b3c7f9',
-          textSectionTitleColor: '#b6c1cd',
-          selectedDayBackgroundColor: '#1e3a8a',
+          backgroundColor: '#fff',
+          calendarBackground: '#fff',
+          textSectionTitleColor: theme.greyDark,
+          selectedDayBackgroundColor: theme.primary,
           selectedDayTextColor: '#ffffff',
-          todayTextColor: '#1e3a8a',
-          dayTextColor: '#1e3a8a',
-          textDisabledColor: '#d9e1e8',
+          todayTextColor: theme.primary,
+          dayTextColor: theme.primaryText,
+          textDisabledColor: theme.greyMedium,
           textDayFontWeight: '300',
           textMonthFontWeight: 'bold',
           textDayHeaderFontWeight: '300',
@@ -138,10 +140,11 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 18,
+    color: theme.greyDark,
   },
   selectedText: {
-    color: 'blue',
-    fontSize: 24,
+    color: theme.primary,
+    fontSize: 26,
     fontWeight: 'bold',
   },
 });

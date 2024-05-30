@@ -30,10 +30,10 @@ const CalendarNav = () => {
         <Stack.Navigator
             screenOptions={{
             headerStyle: {
-              backgroundColor: '#fff', // Header background color
+              backgroundColor: theme.primary, // Header background color
               height: 65,
             },
-            headerTintColor: '#000', // Header text color
+            headerTintColor: '#fff', // Header text color
             headerTitleStyle: {
                 marginLeft: 10,
                 //   fontWeight: 'bold', // Custom title font style
@@ -80,10 +80,10 @@ const ReminderNav = () => {
         <Stack.Navigator
             screenOptions={{
             headerStyle: {
-              backgroundColor: '#fff', // Header background color
+              backgroundColor: theme.primary, // Header background color
               height: 65,
             },
-            headerTintColor: '#000', // Header text color
+            headerTintColor: '#fff', // Header text color
             headerTitleStyle: {
             //   fontWeight: 'bold', // Custom title font style
                 marginLeft: 10,
@@ -107,10 +107,10 @@ const HomeNav = () => {
         <Stack.Navigator
         screenOptions={{
             headerStyle: {
-              backgroundColor: '#fff', // Header background color
+              backgroundColor: theme.primary, // Header background color
               height: 65,
             },
-            headerTintColor: '#000', // Header text color
+            headerTintColor: '#fff', // Header text color
             headerTitleStyle: {
                 marginLeft: 10,
                 //   fontWeight: 'bold', // Custom title font style
@@ -134,20 +134,20 @@ const MainNav = () => {
 
                     if (route.name === 'HomeNav') {
                         iconPath = focused
-                            ? require('./assets/icons/home-outline.png')
-                            : require('./assets/icons/home.png');
+                            ? require('./assets/icons/home.png')
+                            : require('./assets/icons/home-outline.png');
                         iconColor = focused? theme.primary : '#000';
                         iconSize = focused? 30 : 25 ;
                     } else if (route.name === 'CalendarNav') {
                         iconPath = focused
-                            ? require('./assets/icons/calendar-outline-2.png')
-                            : require('./assets/icons/calendar.png');
+                            ? require('./assets/icons/calendar.png')
+                            : require('./assets/icons/calendar-outline-2.png');
                         iconColor = focused? theme.primary : '#000';
                         iconSize = focused? 38 : 33 ;
                     } else {
                         iconPath = focused
-                            ? require('./assets/icons/notification-outline.png')
-                            : require('./assets/icons/notification.png');
+                            ? require('./assets/icons/notification.png')
+                            : require('./assets/icons/notification-outline.png');
                         iconColor = focused? theme.primary : '#000';
                         iconSize = focused? 30 : 25 ;
                     }
@@ -167,10 +167,13 @@ const MainNav = () => {
                 height: 90,
                 paddingBottom: 10,
                 paddingTop: 10,
-                backgroundColor: '#f8f8f8',
-                borderTopColor: '#e0e0e0',
+                backgroundColor: '#fff',
+                borderTopColor: '#fff',
+                borderTop: 0,
+                elevation: 0,
                 },
                 showLabel: false,
+                headerLeft: () => null,
                 
                 headerShown: false,
             })}
@@ -238,7 +241,7 @@ const App = () => {
                  />
                 <Stack.Screen name='CreateUser' component={CreateUser} />
                 <Stack.Screen name='Password' component={Password} />
-                <Stack.Screen name="Profile" component={Profile}/>
+                {/* <Stack.Screen name="Profile" component={Profile}/> */}
                 <Stack.Screen 
                 name='MainNav' 
                 component={MainNav} 

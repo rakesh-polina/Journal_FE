@@ -5,12 +5,14 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  Text,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { API_ENDPOINTS } from '../../src/config';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ReminderCard from '../cards/reminderCard';
-import Icon from 'react-native-vector-icons/Ionicons';
+import theme from '../../styles/theme';
 
 const Reminder = ({ route }) => {
   const { email } = route.params;
@@ -49,12 +51,39 @@ const Reminder = ({ route }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           {reminders.map(reminder => (
+          //   <Swipeable
+          //   key={reminder._id}
+          //   renderRightActions={(progress, dragX) => {
+          //     const translateX = dragX.interpolate({
+          //       inputRange: [0, 100],
+          //       outputRange: [0, 100],
+          //     });
+          //     return (
+          //       <View style={{ flexDirection: 'row' }}>
+          //         <TouchableOpacity
+          //           style={[styles.actionButton, { backgroundColor: 'blue' }]}
+          //           onPress={() => handleEdit(reminder)}
+          //         >
+          //           <Text style={styles.actionText}>Edit</Text>
+          //         </TouchableOpacity>
+          //         <TouchableOpacity
+          //           style={[styles.actionButton, { backgroundColor: 'red' }]}
+          //           onPress={() => handleDelete(reminder)}
+          //         >
+          //           <Text style={styles.actionText}>Delete</Text>
+          //         </TouchableOpacity>
+          //       </View>
+          //     );
+          //   }}
+          //   useNativeAnimations
+          // >
             <ReminderCard 
               key={reminder._id}
               reminder={reminder}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
+            // </Swipeable>
           ))}
         </View>
       </ScrollView>
@@ -63,7 +92,7 @@ const Reminder = ({ route }) => {
           style={styles.addButton} 
           onPress={() => navigation.navigate('CreateReminder', { email })}
         >
-          <Icon name="add" size={32} color="#ffffff" />
+          <Image source={require('../../assets/icons/plus.png')} style={{tintColor:'#fff'}}/>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -73,7 +102,7 @@ const Reminder = ({ route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
@@ -88,7 +117,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButton: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: theme.primary,
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -96,6 +125,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     bottom: 20,
+    elevation: 7,
+  },
+  editButton: {
+    backgroundColor: 'blue',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+  },
+  deleteButton: {
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
   },
 });
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,28 +7,34 @@ import {
   Text,
   TouchableOpacity,
   View,
+  NativeModules,
+  ActivityIndicator
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import storage from '../src/storage'
 
 function Profile() {
 
-  const navigation = useNavigation();
-  
+  const [loading, setLoading] = useState(false);
+
   const logout = () => {
+    setLoading(true);
     storage.remove({
       key: 'loginState'
     });
-    navigation.navigate('Login');
+    NativeModules.DevSettings.reload();
   }
 
   return (
     <SafeAreaView>
       <View>
         <Text>Profile</Text>
-        <TouchableOpacity onPress={() => logout()} style={styles.button}>
-          <Text style={styles.text}>logout</Text>
-        </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size="large" color="#00aaff" />
+        ) : (
+          <TouchableOpacity onPress={logout} style={styles.button}>
+            <Text style={styles.text}>Logout</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );

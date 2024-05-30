@@ -1,10 +1,10 @@
 const theme = {
 
    //COLORS
-    primary: '#3EDC1B', // Primary color..........GREEN
+    primary: '#00AAFF', // Primary color..........GREEN
     backgroud: '#fefefe', // Secondary color......WHITE
     black: '#000', // Main background color.......BLACK
-    greyLight: '#ecf0f1', // .....................Light grey
+    greyLight: '#f8f8f8', // .....................Light grey
     greyMedium: '#bdc3c7', // ....................Medium grey
     greyDark: '#7f8c8d', // ......................Dark grey
 

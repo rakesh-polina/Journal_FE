@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
 import storage from '../../src/storage';
@@ -9,6 +9,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
 
   const navigation = useNavigation();
@@ -19,6 +20,7 @@ const LoginScreen = () => {
       Alert.alert('Error', 'Please enter both username and password');
       return;
     }
+    setLoading(true);
 
     const requestData = JSON.stringify({ email, password });
     console.log('Request Body:', requestData);
@@ -32,7 +34,7 @@ const LoginScreen = () => {
       body: JSON.stringify({ email, password }),
     })
       .then(response => {
-        console.log(response);
+        // console.log(response);
         if (!response.ok) {
           throw new Error('Invalid credentials');
         }
@@ -55,15 +57,16 @@ const LoginScreen = () => {
             phone: phone,
             bday: bday,
             email: email,
-            password: password,
           },
           expires: null, 
         })
+        setLoading(false);
         navigation.navigate("MainNav");
         console.log('Login successful:', data);
       })
       .catch(error => {
         // Handle authentication error
+        setLoading(false);
         console.error('Login failed:', error);
         setError(error.message);
         Alert.alert('Error', error.message);
@@ -87,7 +90,12 @@ const LoginScreen = () => {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Login" onPress={handleLogin} />
+      {/* <Button title="Login" onPress={handleLogin} /> */}
+      {loading ? (
+          <ActivityIndicator size="large" color='#0af' />
+        ) : (
+          <Button title="Login" onPress={handleLogin} />
+        )}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button title="Sign up" onPress={() => navigation.navigate("CreateUser")} />
       <Button title="Home" onPress={() => navigation.navigate("MainNav")} />
