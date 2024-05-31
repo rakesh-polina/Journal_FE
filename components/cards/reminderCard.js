@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Use the appropriate icon set
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import theme from '../../styles/theme'
 
 const ReminderCard = ({ reminder, onEdit, onDelete }) => {
   return (
@@ -23,7 +23,7 @@ const ReminderCard = ({ reminder, onEdit, onDelete }) => {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(reminder._id)}>
-        <Icon name="trash" size={24} color="#ffffff" />
+        <Image source={require('../../assets/icons/trash.png')} style={{width: 15, height: 20, tintColor:theme.error}}/>
       </TouchableOpacity>
     </View>
   );
@@ -31,14 +31,14 @@ const ReminderCard = ({ reminder, onEdit, onDelete }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1e3a8a', // Adjust the color to match the image
+    backgroundColor: theme.greyLight, // Adjust the color to match the image
     padding: 15,
     marginVertical: 10,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    // shadowColor: '#000',
+    // shadowOpacity: 0.2,
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowRadius: 8,
     elevation: 5,
     position: 'relative',
   },
@@ -51,11 +51,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   date: {
-    color: '#ffffff', // Adjust the color to match the image
+    color: theme.secondaryText, // Adjust the color to match the image
     fontSize: 16, // Adjust the size to match the image
   },
   note: {
-    color: '#ffffff', // Adjust the color to match the image
+    color: theme.primaryText, // Adjust the color to match the image
     fontSize: 24, // Adjust the size to match the image
     marginVertical: 10,
     paddingRight: 50,

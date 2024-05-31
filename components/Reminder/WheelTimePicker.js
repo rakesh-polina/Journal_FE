@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import TimePicker from 'react-native-wheel-time-picker';
+import theme from '../../styles/theme';
 
 const MILLISECONDS_PER_MINUTE = 60 * 1000;
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
@@ -29,13 +30,17 @@ const WheelTimePicker = ({ onSnappedTime, initialTime }) => {
       <TimePicker
         value={timeValue}
         wheelProps={{
+          selectedColor: theme.primary,
+          disabledColor: theme.secondaryText,
           wheelHeight: 70, // Increase the height of the wheel
-          itemHeight: 15, // Increase the height of each item
+          itemHeight: 40, // Increase the height of each item
+          displayCount: 3,
+          textStyle: {fontSize: 18,},
         }}
         itemTextSize = {24}
         onChange={(newValue) => setTimeValue(newValue)}
       />
-      <Text style={styles.timeValue}>{`${hour < 10 ? '0' : ''}${hour}:${min < 10 ? '0' : ''}${min}`}</Text>
+      {/* <Text style={styles.timeValue}>{`${hour < 10 ? '0' : ''}${hour}:${min < 10 ? '0' : ''}${min}`}</Text> */}
     </View>
   );
 };
@@ -53,18 +58,13 @@ const WheelTimePicker = ({ onSnappedTime, initialTime }) => {
 // };
 
 const styles = StyleSheet.create({
-  appContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   container: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   timeValue: {
     marginVertical: 20,
-    fontSize: 24,
+    fontSize: 26,
   },
 });
 
