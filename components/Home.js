@@ -20,19 +20,18 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import Event from './cards/event';
+import theme from '../styles/theme';
 
 function Home({navigation}) {
   const isDarkMode = useColorScheme() === 'dark';
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <SafeAreaView style={styles.safeArea}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
+        contentContainerStyle={styles.scrollContainer}>
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
@@ -43,11 +42,30 @@ function Home({navigation}) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <View style={styles.addContainer}>
+        <TouchableOpacity 
+          style={styles.addButton} 
+          onPress={() => navigation.navigate('CreateReminder', { email })}
+        >
+          <Image source={require('../assets/icons/plus.png')} style={{tintColor:'#fff'}}/>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  scrollContainer: {
+    paddingBottom: 100,
+  },
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,
@@ -63,6 +81,22 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  addContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  addButton: {
+    backgroundColor: theme.primary,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 20,
+    elevation: 7,
   },
 });
 
