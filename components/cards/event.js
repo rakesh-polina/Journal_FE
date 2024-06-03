@@ -1,35 +1,72 @@
 import React from 'react';
-import { View, Text, Button, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import theme from '../../styles/theme'
 
-const writeRecords = () => {
-  // Write records logic goes here
-};
-
-const Event = () => {
+const Event = ({ reminder, onEdit, onDelete }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text} onPress={writeRecords}>
-        Write Something About Your Day...
-      </Text>
+    <View style={styles.card}>
+      {/* <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(reminder)}> */}
+      <TouchableOpacity style={styles.editableArea} >
+        <View style={styles.header}>
+          <Text style={styles.date}>
+            time
+            {/* {new Date(reminder.triggerDate).toLocaleString('en-GB', { 
+              weekday: 'long', 
+              day: 'numeric', 
+              month: 'long',
+              year: 'numeric', 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })} */}
+          </Text>
+        </View>
+        <Text style={styles.note} numberOfLines={2} ellipsizeMode='tail'>
+          note
+          {/* {reminder.note} */}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(reminder._id)}>
+        <Image source={require('../../assets/icons/trash.png')} style={{width: 15, height: 20, tintColor:theme.error}}/>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    display: 'flex',
-    borderRadius: 20,
-    padding: 20,
-    margin: 10,
-    // height: 180,
-    backgroundColor: '#193752',
+  card: {
+    backgroundColor: theme.greyLight, // Adjust the color to match the image
+    padding: 15,
+    marginVertical: 10,
+    borderRadius: 10,
+    // shadowColor: '#000',
+    // shadowOpacity: 0.2,
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowRadius: 8,
+    elevation: 5,
+    position: 'relative',
   },
-  text: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#fff',
+  editableArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  date: {
+    color: theme.secondaryText, // Adjust the color to match the image
+    fontSize: 16, // Adjust the size to match the image
+  },
+  note: {
+    color: theme.primaryText, // Adjust the color to match the image
+    fontSize: 24, // Adjust the size to match the image
+    marginVertical: 10,
+    paddingRight: 50,
+  },
+  deleteButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
   },
 });
 

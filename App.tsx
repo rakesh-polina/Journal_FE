@@ -6,7 +6,7 @@ import Ionicons from '@react-native-vector-icons/ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
-import Home from './components/Home';
+import Home from './components/Home/Home';
 import Reminder from './components/Reminder/Reminder';
 import { createStackNavigator } from '@react-navigation/stack';
 import CreateUser from './components/Login/CreateUser';
@@ -14,15 +14,18 @@ import LoginScreen from './components/Login/Login';
 import Password from './components/Login/Password';
 import EventLog from './components/EventLog';
 import CreateReminder from './components/Reminder/CreateReminder';
-import Day from './components/Day';
+import CreateEvent from './components/Home/CreateEvent';
 import Profile from './components/Profile';
 import HeaderButton from './components/cards/headerButton';
 
 import storage from './src/storage';
 import theme from './styles/theme';
+import { RootStackParamList } from './src/types';
+import SearchHeader from './components/cards/searchHeader';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const StackHome = createStackNavigator<RootStackParamList>();
 
 
 const CalendarNav = () => {
@@ -78,7 +81,7 @@ const ReminderNav = () => {
     // Render the navigator once the email is fetched
     return email ? (
         <Stack.Navigator
-            screenOptions={{
+            screenOptions={({route}) => ({
             headerStyle: {
               backgroundColor: theme.primary, // Header background color
               height: 65,
@@ -88,8 +91,8 @@ const ReminderNav = () => {
             //   fontWeight: 'bold', // Custom title font style
                 marginLeft: 10,
             },
-            headerRight: () => <HeaderButton />,
-          }}
+            headerRight: () => <HeaderButton/>,
+          })}
           >
             <Stack.Screen 
                 name="Reminder" 
@@ -104,8 +107,8 @@ const ReminderNav = () => {
 
 const HomeNav = () => {
     return(
-        <Stack.Navigator
-        screenOptions={{
+        <StackHome.Navigator
+        screenOptions={({ route }) =>({
             headerStyle: {
               backgroundColor: theme.primary, // Header background color
               height: 65,
@@ -115,13 +118,18 @@ const HomeNav = () => {
                 marginLeft: 10,
                 //   fontWeight: 'bold', // Custom title font style
             },
-            headerRight: () => <HeaderButton />,
-          }}
+            headerRight: () => (
+                <SearchHeader 
+                    routeName={route.name} 
+                    toggleSearchBar={route.params?.toggleSearchBar|| (() => {})} 
+                />
+            ),
+          })}
           >
-            <Stack.Screen name="Home" component={Home}/>
-            <Stack.Screen name="Day" component={Day}/>
-            <Stack.Screen name="Profile" component={Profile}/>
-        </Stack.Navigator>
+            <StackHome.Screen name="Home" component={Home}/>
+            <StackHome.Screen name="CreateEvent" component={CreateEvent}/>
+            <StackHome.Screen name="Profile" component={Profile}/>
+        </StackHome.Navigator>
     )
 }
 
