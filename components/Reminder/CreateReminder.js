@@ -1,24 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import moment from 'moment';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../src/config';
 import CustomCalendar from './CustomCalendar'; 
 import WheelTimePicker from './WheelTimePicker';
-import theme from '../../styles/theme'
+import theme from '../../styles/theme';
 
 const CreateReminder = ({ route, navigation }) => {
   const { email, reminder } = route.params || {}; // Get email and reminder from route params
   const [note, setNote] = useState(reminder ? reminder.note : '');
-  const [selectedDate, setSelectedDate] = useState(reminder ? moment(reminder.triggerDate).format('YYYY-MM-DD') : '');
-  const [selectedTime, setSelectedTime] = useState(reminder ? moment(reminder.triggerDate).format('HH:mm') : '');
+  const [selectedDate, setSelectedDate] = useState(reminder ? moment(reminder.triggerDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'));
+  const [selectedTime, setSelectedTime] = useState(reminder ? moment(reminder.triggerDate).format('HH:mm') : moment().format('HH:mm'));
   const [isPressed, setIsPressed] = useState(false);
 
   const handleSave = async () => {
+    if (note.trim() === '') {
+      Alert.alert('Empty Note', 'Please enter a note for the reminder.');
+      return;
+    }
     setIsPressed(true);
-    const currentDateTime = new Date();
+    const currentDateTime = moment();
     const formattedTime = moment(selectedTime, 'HH:mm:ss.SSSZ').format('HH:mm');
-    const triggerDate = moment(`${selectedDate} ${formattedTime}`, 'YYYY-MM-DD HH:mm').toISOString();
+    const triggerDate = moment(`${selectedDate} ${formattedTime}`, 'YYYY-MM-DD HH:mm');
+    if (triggerDate.isBefore(currentDateTime)) {
+      Alert.alert('Invalid Date/Time', 'You cannot set a reminder in the past.');
+      setIsPressed(false);
+      return;
+    }
+
     const reminderData = { email, setDate: currentDateTime, triggerDate, note };
 
     try {
@@ -96,6 +106,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: 15,
     alignItems: 'center',
+  },
+  setButtonDisabled: {
+    backgroundColor: theme.primaryLight, // Use a lighter color to indicate disabled state
   },
   setButtonText: {
     fontSize: 22,
