@@ -13,6 +13,8 @@ import CreateRemainder from './components/CreateRemainder';
 import Day from './components/Day';
 import Profile from './components/Profile';
 import { Text, View } from 'react-native';
+import ProfilePicUpload from './components/Login/ProfilePicture';
+import ProfilePicture from './components/Login/ProfilePicture';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -81,6 +83,7 @@ const App = () => {
                  />
                 <Stack.Screen name='CreateUser' component={CreateUser} />
                 <Stack.Screen name='Password' component={Password} />
+                <Stack.Screen name='ProfilePicture' component={ProfilePicture} />
                 <Stack.Screen 
                 name='MainNav' 
                 component={MainNav} 
