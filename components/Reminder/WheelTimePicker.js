@@ -47,10 +47,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  timeValue: {
-    marginVertical: 20,
-    fontSize: 26,
-  },
 });
 
 export default WheelTimePicker;

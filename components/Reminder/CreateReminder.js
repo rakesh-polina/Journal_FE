@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: theme.primaryText,
     fontSize: 18,
-    height: 90,
+    height: 120,
     textAlignVertical: 'top',
   },
   setButton: {
