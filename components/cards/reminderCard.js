@@ -2,27 +2,24 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import theme from '../../styles/theme'
 
-const Event = ({ reminder, onEdit, onDelete }) => {
+const ReminderCard = ({ reminder, onEdit, onDelete }) => {
   return (
     <View style={styles.card}>
-      {/* <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(reminder)}> */}
-      <TouchableOpacity style={styles.editableArea} >
+      <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(reminder)}>
         <View style={styles.header}>
           <Text style={styles.date}>
-            time
-            {/* {new Date(reminder.triggerDate).toLocaleString('en-GB', { 
+            {new Date(reminder.triggerDate).toLocaleString('en-GB', { 
               weekday: 'long', 
               day: 'numeric', 
-              month: 'long',
+              month: 'long', 
               year: 'numeric', 
               hour: '2-digit', 
               minute: '2-digit' 
-            })} */}
+            })}
           </Text>
         </View>
         <Text style={styles.note} numberOfLines={2} ellipsizeMode='tail'>
-          note
-          {/* {reminder.note} */}
+          {reminder.note}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(reminder._id)}>
@@ -70,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Event;
+export default ReminderCard;
