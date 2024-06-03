@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, NativeModules } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
 import storage from '../../src/storage';
@@ -61,7 +61,8 @@ const LoginScreen = () => {
           expires: null, 
         })
         setLoading(false);
-        navigation.navigate("MainNav");
+        NativeModules.DevSettings.reload();
+        // navigation.navigate("MainNav");
         console.log('Login successful:', data);
       })
       .catch(error => {
