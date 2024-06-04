@@ -51,32 +51,7 @@ const Reminder = ({ route }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           {reminders.map(reminder => (
-          //   <Swipeable
-          //   key={reminder._id}
-          //   renderRightActions={(progress, dragX) => {
-          //     const translateX = dragX.interpolate({
-          //       inputRange: [0, 100],
-          //       outputRange: [0, 100],
-          //     });
-          //     return (
-          //       <View style={{ flexDirection: 'row' }}>
-          //         <TouchableOpacity
-          //           style={[styles.actionButton, { backgroundColor: 'blue' }]}
-          //           onPress={() => handleEdit(reminder)}
-          //         >
-          //           <Text style={styles.actionText}>Edit</Text>
-          //         </TouchableOpacity>
-          //         <TouchableOpacity
-          //           style={[styles.actionButton, { backgroundColor: 'red' }]}
-          //           onPress={() => handleDelete(reminder)}
-          //         >
-          //           <Text style={styles.actionText}>Delete</Text>
-          //         </TouchableOpacity>
-          //       </View>
-          //     );
-          //   }}
-          //   useNativeAnimations
-          // >
+     
             <ReminderCard 
               key={reminder._id}
               reminder={reminder}
