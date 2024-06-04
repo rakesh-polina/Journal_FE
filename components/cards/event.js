@@ -2,31 +2,35 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import theme from '../../styles/theme'
 
-const Event = ({ reminder, onEdit, onDelete }) => {
+const Event = ({ event, onEdit, onDelete }) => {
+  const getMoodDetails = (moodIndex) => {
+    const moodDetails = [
+      { source: require('../../assets/icons/angry.png'), selectedColor: theme.error }, // Red
+      { source: require('../../assets/icons/sad.png'), selectedColor: theme.warning }, // Green
+      { source: require('../../assets/icons/smile.png'), selectedColor: theme.primary }, // Blue
+      { source: require('../../assets/icons/happy.png'), selectedColor: '#F1C40F' }, // Yellow
+      { source: require('../../assets/icons/heart.png'), selectedColor: '#F08080' }, // Magenta
+    ];
+
+    return moodDetails[moodIndex] || moodDetails[0]; // Default to first mood if index is out of range
+  };
+
+  const { source, selectedColor } = getMoodDetails(event.mood);
+
   return (
     <View style={styles.card}>
-      {/* <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(reminder)}> */}
-      <TouchableOpacity style={styles.editableArea} >
+      <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(event)}>
+        <Text style={styles.note} numberOfLines={2} ellipsizeMode='tail'>
+          {event.title}
+        </Text>
         <View style={styles.header}>
           <Text style={styles.date}>
             time
-            {/* {new Date(reminder.triggerDate).toLocaleString('en-GB', { 
-              weekday: 'long', 
-              day: 'numeric', 
-              month: 'long',
-              year: 'numeric', 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })} */}
           </Text>
         </View>
-        <Text style={styles.note} numberOfLines={2} ellipsizeMode='tail'>
-          note
-          {/* {reminder.note} */}
-        </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(reminder._id)}>
-        <Image source={require('../../assets/icons/trash.png')} style={{width: 15, height: 20, tintColor:theme.error}}/>
+      <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(event._id)}>
+        <Image source={source} style={{width: 25, height: 25, tintColor:selectedColor}}/>
       </TouchableOpacity>
     </View>
   );
@@ -55,7 +59,7 @@ const styles = StyleSheet.create({
   },
   date: {
     color: theme.secondaryText, // Adjust the color to match the image
-    fontSize: 16, // Adjust the size to match the image
+    fontSize: 14, // Adjust the size to match the image
   },
   note: {
     color: theme.primaryText, // Adjust the color to match the image

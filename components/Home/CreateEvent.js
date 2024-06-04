@@ -10,6 +10,9 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
+import moment from 'moment';
+import { API_ENDPOINTS } from '../../src/config';
+import axios from 'axios';
 import theme from '../../styles/theme';
 
 const mood = [
@@ -45,8 +48,35 @@ const addOns = [
   { src: require('../../assets/icons/file3.png'), onPress: openFiles },
 ];
 
-function CreateEvent() {
-  const [selectedMood, setSelectedMood] = useState(2);
+function CreateEvent({ route, navigation }) {
+  const { email, event } = route.params || {}; // Get email and event from route params
+  const [selectedMood, setSelectedMood] = useState(event ? event.mood : 2);
+  const [title, setTitle] = useState(event ? event.title : '');
+  const [note, setNote] = useState(event ? event.note : '');
+  const [location, setLocation] = useState(event ? event.location : '');
+  const [bookmark, setBookmark] = useState(event ? event.bookmark : false);
+
+  const handleSave = async () => {
+    // setIsPressed(true);
+    const currentDate = new Date();
+    // Construct the date in UTC time
+    const year = currentDate.getUTCFullYear();
+    const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(currentDate.getUTCDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
+    const eventData = { title, mood: selectedMood, note, date: formattedDate, email, bookmark, location };
+
+    try {
+      if (event) {
+        await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
+      } else {
+        await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
+      }
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error saving event:', error);
+    }
+  };
 
   const handleSelectMood = (index) => {
     setSelectedMood(index);
@@ -73,16 +103,16 @@ function CreateEvent() {
           <TextInput
             style={[styles.notesInput, {height: 60}]}
             placeholder="Title"
-            // value={note}
-            // onChangeText={setNote}
+            value={title}
+            onChangeText={setTitle}
             multiline
           />
 
           <TextInput
             style={styles.notesInput}
             placeholder="Journal starts here..."
-            // value={note}
-            // onChangeText={setNote}
+            value={note}
+            onChangeText={setNote}
             multiline
           />
           <View style={styles.iconContainer}>
@@ -103,10 +133,8 @@ function CreateEvent() {
         </View>
       </ScrollView>
         <View style={styles.setButtonContainer}>
-          {/* <TouchableOpacity style={styles.setButton} onPress={handleSave}> */}
-          <TouchableOpacity style={styles.setButton}>
-            {/* <Text style={styles.setButtonText}>{reminder ? 'UPDATE REMINDER' : 'SET REMINDER'}</Text> */}
-            <Text style={styles.setButtonText}>SAVE</Text>
+          <TouchableOpacity style={styles.setButton} onPress={handleSave}>
+            <Text style={styles.setButtonText}>{event ? 'UPDATE EVENT' : 'SAVE'}</Text>
           </TouchableOpacity>
 
         </View>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRoute, useRef } from 'react';
+import axios from 'axios';
 import {
   Button,
   SafeAreaView,
@@ -12,32 +13,71 @@ import {
   useColorScheme,
   View,
   Animated, 
-  PanResponder
+  PanResponder,
+  ActivityIndicator
 } from 'react-native';
+import debounce from 'lodash.debounce';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { API_ENDPOINTS } from '../../src/config';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
 import Event from '../cards/event';
 import theme from '../../styles/theme';
-// import {Calendar,Agenda, ExpandableCalendar, CalendarProvider} from 'react-native-calendars';
 import ExCalendar from './ExCalendar';
 
 function Home({navigation, route}) {
+  const  email  = route.params.email;
+  const [ date, setDate] = useState(new Date());
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  // const [isCalendarVisible, setIsCalendarVisible] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false); // Loading state
 
-  // const panY = useRef(new Animated.Value(0)).current;
-  // const route = useRoute();
+  const fetchEvents = useCallback(async () => {
+    setLoading(true); // Start loading
+    const formattedDate =  formatDate(date);
+    console.log(formattedDate);
+    try {
+      const result = await axios.get(API_ENDPOINTS.GET_EVENTS_BY_DATE(email, formattedDate));
+      // console.log(result.data);
+      setEvents(result.data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      // Optionally set an error state here
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  }, [email, date]);
 
-  // const toggleSearchBar = () => {
-  //   console.log('searchh');
-  //   setIsSearchVisible(!isSearchVisible);
-  // };
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [fetchEvents])
+  );
+
+  const handleEdit = (event) => {
+    navigation.navigate('CreateEvent', { 
+      email, 
+      event 
+    });
+  };
+
+  const handleDelete = async (id) => {
+    await axios.delete(API_ENDPOINTS.DELETE_EVENT(id));
+    fetchReminders();
+  };
+
+  const formatDate = (date) => {
+    const currentDate = new Date(date);
+    const year = currentDate.getUTCFullYear();
+    const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(currentDate.getUTCDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
+    return formattedDate
+
+  }
 
   const toggleFilters = useCallback(() => {
     console.log('filter');
@@ -53,44 +93,6 @@ function Home({navigation, route}) {
     navigation.setParams({ toggleSearchBar });
   }, [navigation, toggleSearchBar]);
 
-  // const panResponder = useRef(
-  //   PanResponder.create({
-  //     onMoveShouldSetPanResponder: (_, gestureState) => {
-  //       return Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
-  //     },
-  //     onPanResponderMove: Animated.event(
-  //       [null, { dy: panY }],
-  //       { useNativeDriver: false }
-  //     ),
-  //     onPanResponderRelease: (_, gestureState) => {
-  //       if (gestureState.dy > 100) {
-  //         // Swiped down to open calendar
-  //         Animated.timing(panY, {
-  //           toValue: 100,  // Adjust as per the height of ExCalendar
-  //           duration: 300,
-  //           useNativeDriver: false,
-  //         }).start(() => {
-  //           setIsCalendarVisible(true);
-  //         });
-  //       } else if (gestureState.dy < -100) {
-  //         // Swiped up to close calendar
-  //         Animated.timing(panY, {
-  //           toValue: 0,
-  //           duration: 300,
-  //           useNativeDriver: false,
-  //         }).start(() => {
-  //           setIsCalendarVisible(false);
-  //         });
-  //       } else {
-  //         // Reset position if swipe distance is not sufficient
-  //         Animated.spring(panY, {
-  //           toValue: isCalendarVisible ? 200 : 0,
-  //           useNativeDriver: false,
-  //         }).start();
-  //       }
-  //     },
-  //   })
-  // ).current;
   
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -110,34 +112,22 @@ function Home({navigation, route}) {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.scrollContainer}>
-          <ExCalendar />
-         {/* {isCalendarVisible ? (
-          <View>
-            <Animated.View 
-            style={[styles.knobContainer, { transform: [{ translateY: panY }] }]}
-            {...panResponder.panHandlers}
-          >
-            <View style={styles.knob} />
-          </Animated.View>
 
-          </View>
-        ) : (
-          <Animated.View 
-            style={[styles.knobContainer, { transform: [{ translateY: panY }] }]}
-            {...panResponder.panHandlers}
-          >
-            <View style={styles.knob} />
-          </Animated.View>
-        )} */}
-        
+      <ExCalendar onDateChange={setDate} style={styles.exCalendar} />
+         
         <View style={styles.container}>
-          <Event/>
-          {/* <Event 
-              // key={reminder._id}
-              // reminder={reminder}
-              // onEdit={handleEdit}
-              // onDelete={handleDelete}
-            /> */}
+        {loading ? (
+            <ActivityIndicator size="large" color="#00aaff" />
+          ) : (
+            events.map(event => (
+              <Event 
+                key={event._id}
+                event={event}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))
+          )}
         </View>
       </ScrollView>
       <View style={styles.addContainer}>
@@ -157,6 +147,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+    justifyContent: 'flex-start',
   },
   container: {
     flex: 1,
@@ -166,29 +157,8 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 100,
   },
-  // sectionContainer: {
-  //   marginTop: 32,
-  //   paddingHorizontal: 24,
-  // },
-  // sectionTitle: {
-  //   fontSize: 24,
-  //   fontWeight: '600',
-  // },
-  // sectionDescription: {
-  //   marginTop: 8,
-  //   fontSize: 18,
-  //   fontWeight: '400',
-  // },
-  // highlight: {
-  //   fontWeight: '700',
-  // },
-  // searchBar: {
-  //   height: 40,
-  //   borderColor: '#ccc',
-  //   borderWidth: 1,
-  //   borderRadius: 20,
-  //   paddingHorizontal: 10,
-  //   margin: 10,
+  // exCalendar:{
+  //   zIndex: 99,
   // },
   searchContainer: {
     flexDirection: 'row',
