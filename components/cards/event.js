@@ -24,8 +24,8 @@ const Event = ({ event, onEdit, onDelete }) => {
           {event.title}
         </Text>
         <View style={styles.header}>
-          <Text style={styles.date}>
-            time
+          <Text style={styles.location}>
+            {event.location}
           </Text>
         </View>
       </TouchableOpacity>
@@ -39,7 +39,8 @@ const Event = ({ event, onEdit, onDelete }) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.greyLight, // Adjust the color to match the image
-    padding: 15,
+    padding: 5,
+    paddingHorizontal: 10,
     marginVertical: 10,
     borderRadius: 10,
     // shadowColor: '#000',
@@ -56,10 +57,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    // borderWidth: 1,
+    // borderColor: '#000',
   },
-  date: {
+  location: {
     color: theme.secondaryText, // Adjust the color to match the image
-    fontSize: 14, // Adjust the size to match the image
+    fontSize: 12, // Adjust the size to match the image
   },
   note: {
     color: theme.primaryText, // Adjust the color to match the image

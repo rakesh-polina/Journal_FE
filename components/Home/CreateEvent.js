@@ -1,4 +1,4 @@
-import React, { useState, useEffect }  from 'react';
+import React, { useState, useEffect, useCallback }  from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -11,50 +11,58 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import moment from 'moment';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
 import axios from 'axios';
 import theme from '../../styles/theme';
+import storage from '../../src/storage';
 
-const mood = [
-  { source: require('../../assets/icons/angry.png'), selectedColor: theme.error }, // Red
-  { source: require('../../assets/icons/sad.png'), selectedColor: theme.warning }, // Green
-  { source: require('../../assets/icons/smile.png'), selectedColor: theme.primary }, // Blue
-  { source: require('../../assets/icons/happy.png'), selectedColor: '#F1C40F' }, // Yellow
-  { source: require('../../assets/icons/heart.png'), selectedColor: '#F08080' }, // Magenta
-];
 
-// Define your onPress functions
-const openCamera = () => {
-  console.log('openCamera');
-};
-const openGallery = () => {
-  console.log('openGallery');
-};
-const openAudio = () => {
-  console.log('openAudio');
-};
-const openLocation = () => {
-  console.log('openLocation');
-};
-const openFiles = () => {
-  console.log('openFiles');
-};
-
-const addOns = [
-  { src: require('../../assets/icons/camera3.png'), onPress: openCamera },
-  { src: require('../../assets/icons/gallery.png'), onPress: openGallery },
-  { src: require('../../assets/icons/audio2.png'), onPress: openAudio },
-  { src: require('../../assets/icons/location2.png'), onPress: openLocation },
-  { src: require('../../assets/icons/file3.png'), onPress: openFiles },
-];
 
 function CreateEvent({ route, navigation }) {
-  const { email, event } = route.params || {}; // Get email and event from route params
+  const { email, curlocation, event } = route.params || {}; // Get email and event from route params
   const [selectedMood, setSelectedMood] = useState(event ? event.mood : 2);
   const [title, setTitle] = useState(event ? event.title : '');
   const [note, setNote] = useState(event ? event.note : '');
-  const [location, setLocation] = useState(event ? event.location : '');
+  const [location, setLocation] = useState(event ? event.location : '' );
   const [bookmark, setBookmark] = useState(event ? event.bookmark : false);
+
+  const [editing, setEditing] = useState(event? true : false);
+  
+
+  const mood = [
+    { source: require('../../assets/icons/angry.png'), selectedColor: theme.error }, // Red
+    { source: require('../../assets/icons/sad.png'), selectedColor: theme.warning }, // Green
+    { source: require('../../assets/icons/smile.png'), selectedColor: theme.primary }, // Blue
+    { source: require('../../assets/icons/happy.png'), selectedColor: '#F1C40F' }, // Yellow
+    { source: require('../../assets/icons/heart.png'), selectedColor: '#F08080' }, // Magenta
+  ];
+  
+  // Define your onPress functions
+  const openCamera = () => {
+    console.log(route.params);
+  };
+  const openGallery = () => {
+    console.log('openGallery');
+  };
+  const openAudio = () => {
+    console.log('openAudio');
+  };
+  const openLocation = () => {
+    navigation.navigate('Location',{ location, event });
+    console.log('openLocation');
+  };
+  const openFiles = () => {
+    console.log('openFiles');
+  };
+  
+  const addOns = [
+    { src: require('../../assets/icons/camera3.png'), onPress: openCamera },
+    { src: require('../../assets/icons/gallery.png'), onPress: openGallery },
+    { src: require('../../assets/icons/audio2.png'), onPress: openAudio },
+    { src: require('../../assets/icons/location2.png'), onPress: openLocation },
+    { src: require('../../assets/icons/file3.png'), onPress: openFiles },
+  ];
 
   const handleSave = async () => {
     // setIsPressed(true);
@@ -67,7 +75,9 @@ function CreateEvent({ route, navigation }) {
     const eventData = { title, mood: selectedMood, note, date: formattedDate, email, bookmark, location };
 
     try {
-      if (event) {
+      if (editing) {
+        setEditing(false);
+        console.log(eventData)
         await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
       } else {
         await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
@@ -85,6 +95,13 @@ function CreateEvent({ route, navigation }) {
   const handleIconPress = (onPress) => {
     onPress(); // Call the respective onPress function
   };
+
+  
+  useEffect(() => {
+    if (route.params && route.params.location) {
+      setLocation(route.params.location);
+    }
+  }, [route.params]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -115,6 +132,7 @@ function CreateEvent({ route, navigation }) {
             onChangeText={setNote}
             multiline
           />
+          <Text>{location}</Text>
           <View style={styles.iconContainer}>
             {addOns.map((addOn, index) => (
               <TouchableOpacity
@@ -134,7 +152,7 @@ function CreateEvent({ route, navigation }) {
       </ScrollView>
         <View style={styles.setButtonContainer}>
           <TouchableOpacity style={styles.setButton} onPress={handleSave}>
-            <Text style={styles.setButtonText}>{event ? 'UPDATE EVENT' : 'SAVE'}</Text>
+            <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>
           </TouchableOpacity>
 
         </View>
@@ -183,7 +201,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     width: 250,
-    elevation: 5,
+    elevation: 3,
   },
   setButtonText: {
     fontSize: 22,
