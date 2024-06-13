@@ -108,7 +108,33 @@ const ReminderNav = () => {
 }
 
 const HomeNav = () => {
-    return(
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
+        .then(ret => {
+            if (ret.email) {
+                setEmail(ret.email);
+            }
+        })
+        .catch(err => {
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
+        });
+    }, []); // Empty dependency array to run this effect only once
+
+    // Render the navigator once the email is fetched
+    return email ? (
         <StackHome.Navigator
         screenOptions={({ route }) =>({
             headerStyle: {
@@ -128,11 +154,15 @@ const HomeNav = () => {
             ),
           })}
           >
-            <StackHome.Screen name="Home" component={Home}/>
-            <StackHome.Screen name="CreateEvent" component={CreateEvent}/>
+            <StackHome.Screen 
+                name="Home" 
+                component={Home}
+                initialParams={{ email: email }}
+                />
+            <StackHome.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
             <StackHome.Screen name="Profile" component={Profile}/>
         </StackHome.Navigator>
-    )
+    ) : null; // Return null if email is not yet fetched
 }
 
 const MainNav = () => {
