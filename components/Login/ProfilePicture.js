@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, Platform, PermissionsAndroid } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_ENDPOINTS } from '../../src/config';
 
@@ -7,39 +7,16 @@ const ProfilePicture = ({ route, navigation }) => {
   const [photo, setPhoto] = useState(null);
   const { email } = route.params;
 
-
-  const requestPermissions = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-        ]);
-
-        if (
-          granted['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED &&
-          granted['android.permission.WRITE_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED &&
-          granted['android.permission.READ_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED
-        ) {
-          console.log('You can use the camera and storage');
-        } else {
-          console.log('Permission denied');
-        }
-      } catch (err) {
-        console.warn(err);
-      }
-    }
-  };
-
-  const handleChoosePhoto = () => {
-    launchImageLibrary({ noData: true }, response => {
+  
+  const handleChoosePhoto = async () => {
+    await launchImageLibrary({ noData: true }, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else {
         setPhoto(response.assets[0]);
+        console.log(response.assets[0])
       }
     });
   };
@@ -51,14 +28,20 @@ const ProfilePicture = ({ route, navigation }) => {
     }
 
     const formData = new FormData();
+    formData.append('email', email);  // Append email to the form data
     formData.append('profilePicture', {
       name: photo.fileName,
       type: photo.type,
       uri: Platform.OS === 'ios' ? photo.uri.replace('file://', '') : photo.uri,
     });
+    console.log("In handle upload photo")
+    console.log(photo.fileName)
+    console.log(photo.type)
+    console.log(photo.uri)
+    console.log(formData.ProfilePicture)
 
-    fetch(API_ENDPOINTS.USER(email), {
-      method: 'PUT',
+    fetch(API_ENDPOINTS.UPLOAD_PROFILE_PICTURE(email), {
+      method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -88,13 +71,12 @@ const ProfilePicture = ({ route, navigation }) => {
       </TouchableOpacity>
       {photo && (
         <View style={{ marginTop: 20 }}>
-        <Text>Selected Photo:</Text>
-        <Image
-          source={{ uri: photo.uri }}
-          style={styles.photo}
-        />
+          <Text>Selected Photo:</Text>
+          <Image
+            source={{ uri: photo.uri }}
+            style={styles.photo}
+          />
         </View>
-        // <Image source={{ uri: photo.uri }} style={styles.photo} />
       )}
       <TouchableOpacity
         style={styles.uploadButton}

@@ -48,7 +48,7 @@ const Password = ({route,navigation}) => {
       })
       .then(data => {
         console.log('User created successfully:', data);
-        navigation.navigate('ProfilePicture', { username: data.username });
+        navigation.navigate('ProfilePicture', { email: data.email });
       })
       .catch(error => {
         console.log(JSON.stringify(userData));

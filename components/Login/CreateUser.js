@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import DatePicker from 'react-native-date-picker';
+// import DatePicker from 'react-native-date-picker';
 import { API_ENDPOINTS } from '../../src/config';
 import { RadioButton } from 'react-native-paper';
 
@@ -54,7 +54,7 @@ function CreateUser({navigation}) {
           onChangeText={setPhone}
         />
         <Text>Birth Day</Text>
-        <DatePicker mode="date" date={bday} onDateChange={setBday} />
+        {/* <DatePicker mode="date" date={bday} onDateChange={setBday} /> */}
         <Text>Gender</Text>
         <View style={styles.radioGroup}>
           <View style={styles.radioButton}>
