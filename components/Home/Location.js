@@ -135,16 +135,7 @@ function Location({ navigation, route }) {
             </View>
           </TouchableOpacity>
         )}
-        // ListFooterComponent={() => (
-        //   <View>
-        //     {loading && <ActivityIndicator size="large" color={theme.primary} />}
-        //     <View style={styles.setButtonContainer}>
-        //       <TouchableOpacity style={styles.setButton} onPress={handleSetLocation}>
-        //         <Text style={styles.setButtonText}>SET LOCATION</Text>
-        //       </TouchableOpacity>
-        //     </View>
-        //   </View>
-        // )}
+  
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No suggestions available</Text>
@@ -193,6 +184,7 @@ const styles = StyleSheet.create({
       },
       searchBar: {
         // flex: 1,
+        color: '#fff',
         height: 60,
         marginHorizontal: 5,
         borderColor: '#ccc',
@@ -226,6 +218,7 @@ const styles = StyleSheet.create({
       },
       suggestionText: {
         fontSize: 16,
+        color: theme.primaryText,
       },
       emptyContainer: {
         padding: 20,

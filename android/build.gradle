@@ -6,6 +6,7 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "25.1.8937393"
         kotlinVersion = "1.8.0"
+        googlePlayServicesLocationVersion = "21.0.1"
     }
     repositories {
         google()
@@ -18,4 +19,4 @@ buildscript {
     }
 }
 
-apply plugin: "com.facebook.react.rootproject"
+// apply plugin: "com.facebook.react.rootproject"
