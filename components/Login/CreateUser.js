@@ -1,46 +1,27 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import DatePicker from 'react-native-date-picker';
+// import DatePicker from 'react-native-date-picker';
 import { API_ENDPOINTS } from '../../src/config';
+import { RadioButton } from 'react-native-paper';
 
 
 function CreateUser({navigation}) {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('');  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [bday, setBday] = useState(new Date());
+  const [gender, setGender] = useState('male'); 
 
   const handleSubmit = () => {
-    if (!email.trim() || !phone.trim() || !name.trim() || !username.trim()) {
-      Alert.alert('Error', 'Please fill all the fields');
+    if (!email.trim() || !phone.trim() || !name.trim() || !username.trim() || !gender.trim()) {
+      alert('Error', 'Please fill all the fields');
       return;
     }
-
-    const userData = { username, name, email, phone, bday };
-
-    fetch(API_ENDPOINTS.USERS, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to create user');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('User created successfully:', data);
-        // Optionally, you can navigate to a different screen upon successful user creation
-        navigation.navigate('Password',{email: email});
-      })
-      .catch(error => {
-        console.error('Error creating user:', error);
-        Alert.alert('Error', 'Failed to create user. Please try again.');
-      });
+    const formattedBday = bday.toISOString().split('T')[0];
+    console.log(formattedBday)
+    const userData = { username, name, email, phone, bday: formattedBday, gender };
+    navigation.navigate('Password', { userData });
   };
 
 
@@ -73,7 +54,34 @@ function CreateUser({navigation}) {
           onChangeText={setPhone}
         />
         <Text>Birth Day</Text>
-        <DatePicker mode="date" date={bday} onDateChange={setBday} />
+        {/* <DatePicker mode="date" date={bday} onDateChange={setBday} /> */}
+        <Text>Gender</Text>
+        <View style={styles.radioGroup}>
+          <View style={styles.radioButton}>
+            <RadioButton
+              value="male"
+              status={gender === 'male' ? 'checked' : 'unchecked'}
+              onPress={() => setGender('male')}
+            />
+            <Text>Male</Text>
+          </View>
+          <View style={styles.radioButton}>
+            <RadioButton
+              value="female"
+              status={gender === 'female' ? 'checked' : 'unchecked'}
+              onPress={() => setGender('female')}
+            />
+            <Text>Female</Text>
+          </View>
+          <View style={styles.radioButton}>
+            <RadioButton
+              value="other"
+              status={gender === 'other' ? 'checked' : 'unchecked'}
+              onPress={() => setGender('other')}
+            />
+            <Text>Other</Text>
+          </View>
+        </View>
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Create User</Text>
         </TouchableOpacity>
@@ -106,6 +114,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
   },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: '#fff',
+  },
+  picker: {
+    height: 40,
+    width: '100%',
+    marginBottom: 10,
+    color: '#fff',
+  },
   button: {
     backgroundColor: 'gray',
     padding: 10,
@@ -116,6 +135,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
   },
 });
 
