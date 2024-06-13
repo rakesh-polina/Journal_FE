@@ -22,6 +22,8 @@ import storage from './src/storage';
 import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
 import SearchHeader from './components/cards/searchHeader';
+import ProfilePicUpload from './components/Login/ProfilePicture';
+import ProfilePicture from './components/Login/ProfilePicture';
 import Location from './components/Home/Location';
 
 const Tab = createBottomTabNavigator();
@@ -281,7 +283,7 @@ const App = () => {
                  />
                 <Stack.Screen name='CreateUser' component={CreateUser} />
                 <Stack.Screen name='Password' component={Password} />
-                {/* <Stack.Screen name="Profile" component={Profile}/> */}
+                <Stack.Screen name='ProfilePicture' component={ProfilePicture} />
                 <Stack.Screen 
                 name='MainNav' 
                 component={MainNav} 

@@ -14,57 +14,47 @@ import { API_ENDPOINTS } from '../../src/config';
 const Password = ({route,navigation}) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const {email} = route.params;
-
+  const {userData} = route.params;
   const handleCreateAccount = () => {
     // Validate password and confirm password
     if (!password.trim()) {
-      alert('Please enter a password');
+      alert('Error', 'Please enter a password');
       return;
     }
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      alert('Error', 'Passwords do not match');
       return;
     }
 
-    console.log('Creating account with email:', email);
+    console.log('Creating account with user data:', userData);
     console.log('Password:', password);
 
-     // Fetch user data using email
-  fetch(API_ENDPOINTS.USER(email),{
-    method: 'GET'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data');
-    }
-    return response.json();
-  })
-  .then(userData => {
     // Append password to user data
-    return fetch(API_ENDPOINTS.SET_PASSWORD, {
+    userData.password = password;
+
+    // Send user data with password to the server
+    fetch(API_ENDPOINTS.USERS, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId: userData._id, password }), // Send userId and password
-    });
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to update user data');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log('Account created successfully:', data);
-    navigation.navigate('MainNav');
-    // Optionally, you can navigate to a different screen upon successful account creation
-  })
-  .catch(error => {
-    console.error('Error creating account:', error);
-    Alert.alert('Error', 'Failed to create account. Please try again.');
-  });
+      body: JSON.stringify(userData),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to create user');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('User created successfully:', data);
+        navigation.navigate('ProfilePicture', { email: data.email });
+      })
+      .catch(error => {
+        console.log(JSON.stringify(userData));
+        console.error('Error creating user:', error);
+        alert('Error, Failed to create user. Please try again.');
+      });
   };
 
   return (
