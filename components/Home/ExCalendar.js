@@ -11,7 +11,7 @@ const ExCalendar = (props) => {
     todayButtonTextColor: '#00aaff'
   });
 
-  const initialDate = '2023-05-30';
+  const initialDate = new Date();
   const onDateChanged = useCallback((date, updateSource) => {
     console.log('ExpandableCalendarScreen onDateChanged: ', date, updateSource);
   }, []);

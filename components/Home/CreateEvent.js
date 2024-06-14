@@ -1,16 +1,22 @@
-import React, { useState, useEffect }  from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   TextInput,
   Text,
   Image,
   View,
   TouchableOpacity,
+  FlatList,
+  PermissionsAndroid,
+  Platform,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import theme from '../../styles/theme';
+import { fetchMedia, clusterByDateAndLocation } from './FetchMedia'; // Make sure to import the helper functions
+import { parseISO, format, isValid, parse } from 'date-fns';
 
 const mood = [
   { source: require('../../assets/icons/angry.png'), selectedColor: theme.error }, // Red
@@ -45,8 +51,67 @@ const addOns = [
   { src: require('../../assets/icons/file3.png'), onPress: openFiles },
 ];
 
+const requestStoragePermission = async () => {
+  if (Platform.OS === 'android') {
+    console.log("It is android")
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Storage Permission',
+          message: 'App needs access to your storage to fetch recent activities.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      );
+      console.log('Permission status:', granted);
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  } else {
+    return true;
+  }
+};
+
+const RecommendationsTab = ({ clusters }) => (
+  <FlatList
+    data={clusters}
+    renderItem={({ item }) => (
+      <View style={styles.card}>
+        <Text>
+          {item.date && isValid(parseISO(item.date))
+            ? format(parseISO(item.date), 'PP')
+            : 'No date available'}
+        </Text>
+        <Text>
+          Location: (
+          {item.location && item.location.latitude ? item.location.latitude : 'N/A'}
+          , 
+          {item.location && item.location.longitude ? item.location.longitude : 'N/A'}
+          )
+        </Text>
+        <FlatList
+          data={item.items}
+          renderItem={({ item }) => (
+            <Image source={{ uri: item.uri }} style={{ height: 100, width: 100 }} />
+          )}
+          horizontal
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
+    )}
+    keyExtractor={(item, index) => index.toString()}
+  />
+);
+
 function CreateEvent() {
   const [selectedMood, setSelectedMood] = useState(2);
+  const [clusters, setClusters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   const handleSelectMood = (index) => {
     setSelectedMood(index);
@@ -55,6 +120,30 @@ function CreateEvent() {
   const handleIconPress = (onPress) => {
     onPress(); // Call the respective onPress function
   };
+
+  const toggleRecommendations = () => {
+    setShowRecommendations(!showRecommendations);
+  };
+
+  useEffect(() => {
+    const loadMedia = async () => {
+      console.log('Requesting storage permission');
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        console.log('Permission denied');
+        return;
+      }
+      console.log('Fetching media');
+      const items = await fetchMedia();
+      console.log('Fetched items:', items);
+      const clustered = clusterByDateAndLocation(items, 1); // 1 km max distance for clustering
+      console.log('Clustered items:', clustered);
+      setClusters(clustered);
+      setLoading(false);
+    };
+
+    loadMedia();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -71,18 +160,14 @@ function CreateEvent() {
               ))}
           </View>
           <TextInput
-            style={[styles.notesInput, {height: 60}]}
+            style={[styles.notesInput, { height: 60 }]}
             placeholder="Title"
-            // value={note}
-            // onChangeText={setNote}
             multiline
           />
 
           <TextInput
             style={styles.notesInput}
             placeholder="Journal starts here..."
-            // value={note}
-            // onChangeText={setNote}
             multiline
           />
           <View style={styles.iconContainer}>
@@ -99,17 +184,37 @@ function CreateEvent() {
               </TouchableOpacity>
             ))}
           </View>
+
+          <TouchableOpacity onPress={toggleRecommendations} style={styles.recommendationsButton}>
+            <Text style={styles.recommendationsButtonText}>Show Recommendations</Text>
+          </TouchableOpacity>
+
+          {loading && <ActivityIndicator size="large" color={theme.primary} />}
           
         </View>
       </ScrollView>
-        <View style={styles.setButtonContainer}>
-          {/* <TouchableOpacity style={styles.setButton} onPress={handleSave}> */}
-          <TouchableOpacity style={styles.setButton}>
-            {/* <Text style={styles.setButtonText}>{reminder ? 'UPDATE REMINDER' : 'SET REMINDER'}</Text> */}
-            <Text style={styles.setButtonText}>SAVE</Text>
-          </TouchableOpacity>
-
-        </View>
+      <View style={styles.setButtonContainer}>
+        <TouchableOpacity style={styles.setButton}>
+          <Text style={styles.setButtonText}>SAVE</Text>
+        </TouchableOpacity>
+      </View>
+      {showRecommendations && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showRecommendations}
+          onRequestClose={toggleRecommendations}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity onPress={toggleRecommendations} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              <RecommendationsTab clusters={clusters} />
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -129,10 +234,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 0,
   },
-  timePickerContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
   notesInput: {
     backgroundColor: theme.greyLight,
     elevation: 3,
@@ -144,10 +245,10 @@ const styles = StyleSheet.create({
     height: 90,
     textAlignVertical: 'top',
   },
-  setButtonContainer:{
+  setButtonContainer: {
     padding: 20,
     alignItems: 'center',
-    paddingBottom: 10, 
+    paddingBottom: 10,
   },
   setButton: {
     backgroundColor: theme.primary,
@@ -184,7 +285,44 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: '#000',
   },
+  recommendationsButton: {
+    backgroundColor: theme.primary,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  recommendationsButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    maxHeight: '50%',
+  },
+  closeButton: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  closeButtonText: {
+    color: theme.primary,
+    fontSize: 16,
+  },
+  card: {
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    elevation: 3,
+  },
 });
-
 
 export default CreateEvent;
