@@ -22,6 +22,7 @@ import { API_ENDPOINTS } from '../../src/config';
 
 import Event from '../cards/event';
 import theme from '../../styles/theme';
+import storage from '../../src/storage';
 import ExCalendar from './ExCalendar';
 
 function Home({navigation, route}) {
@@ -157,9 +158,9 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 100,
   },
-  // exCalendar:{
-  //   zIndex: 99,
-  // },
+  exCalendar:{
+    // position: 'absolute'
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
