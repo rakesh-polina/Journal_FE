@@ -6,27 +6,39 @@ const leftArrowIcon = require('../../assets/icons/previous.png');
 const rightArrowIcon = require('../../assets/icons/next.png');
 
 const ExCalendar = (props) => {
-  const {weekView} = props;
+  const {weekView, onDateChange} = props;
   const todayBtnTheme = useRef({
     todayButtonTextColor: '#00aaff'
   });
 
-  const initialDate = new Date();
-  const onDateChanged = useCallback((date, updateSource) => {
-    console.log('ExpandableCalendarScreen onDateChanged: ', date, updateSource);
-  }, []);
+  const initialDate = new Date().toISOString().split('T')[0];
 
-  const onMonthChange = useCallback(({dateString}) => {
-    console.log('ExpandableCalendarScreen onMonthChange: ', dateString);
-  }, []);
+  const onDateChanged = useCallback(
+    (date, updateSource) => {
+      console.log('ExpandableCalendarScreen onDateChanged: ', date, updateSource);
+      onDateChange(date);
+      // if (onDateChange) {
+      // }
+    },
+    [onDateChange, initialDate]
+  );
+
+  // const onMonthChange = useCallback(({dateString}) => {
+  //   console.log('ExpandableCalendarScreen onMonthChange: ', dateString);
+  //   if (onDateChange && dateString !== initialDate) {
+  //     onDateChange(dateString);
+  //   }
+  //   },
+  //   [onDateChange, initialDate]
+  // );
 
   return (
     <CalendarProvider
       date={initialDate}
       onDateChanged={onDateChanged}
-      onMonthChange={onMonthChange}
+      // onMonthChange={onMonthChange}
       showTodayButton
-      disabledOpacity={0}
+      // disabledOpacity={1}
       theme={todayBtnTheme.current}
       // todayBottomMargin={16}
     >

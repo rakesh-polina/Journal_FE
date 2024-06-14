@@ -104,8 +104,10 @@ android {
     }
 }
 
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
+    implementation "com.google.android.gms:play-services-location:21.0.1" // Ensure this is the latest stable version
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
 

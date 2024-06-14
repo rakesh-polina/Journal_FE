@@ -22,6 +22,9 @@ import storage from './src/storage';
 import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
 import SearchHeader from './components/cards/searchHeader';
+import ProfilePicUpload from './components/Login/ProfilePicture';
+import ProfilePicture from './components/Login/ProfilePicture';
+import Location from './components/Home/Location';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -106,7 +109,33 @@ const ReminderNav = () => {
 }
 
 const HomeNav = () => {
-    return(
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
+        .then(ret => {
+            if (ret.email) {
+                setEmail(ret.email);
+            }
+        })
+        .catch(err => {
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
+        });
+    }, []); // Empty dependency array to run this effect only once
+
+    // Render the navigator once the email is fetched
+    return email ? (
         <StackHome.Navigator
         screenOptions={({ route }) =>({
             headerStyle: {
@@ -126,11 +155,16 @@ const HomeNav = () => {
             ),
           })}
           >
-            <StackHome.Screen name="Home" component={Home}/>
-            <StackHome.Screen name="CreateEvent" component={CreateEvent}/>
+            <StackHome.Screen 
+                name="Home" 
+                component={Home}
+                initialParams={{ email: email }}
+                />
+            <StackHome.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
+            <StackHome.Screen name="Location" component={Location}/>
             <StackHome.Screen name="Profile" component={Profile}/>
         </StackHome.Navigator>
-    )
+    ) : null; // Return null if email is not yet fetched
 }
 
 const MainNav = () => {
@@ -249,7 +283,7 @@ const App = () => {
                  />
                 <Stack.Screen name='CreateUser' component={CreateUser} />
                 <Stack.Screen name='Password' component={Password} />
-                {/* <Stack.Screen name="Profile" component={Profile}/> */}
+                <Stack.Screen name='ProfilePicture' component={ProfilePicture} />
                 <Stack.Screen 
                 name='MainNav' 
                 component={MainNav} 
