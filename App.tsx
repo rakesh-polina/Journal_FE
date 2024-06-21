@@ -24,6 +24,7 @@ import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
 import SearchHeader from './components/cards/searchHeader';
 import ProfilePicture from './components/Login/ProfilePicture';
+import Location from './components/Home/Location';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -142,6 +143,7 @@ const HomeNav = () => {
                 initialParams={{ email: email }}
                 />
             <StackHome.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
+            <StackHome.Screen name="Location" component={Location}/>
             <StackHome.Screen name="Profile" component={Profile}/>
         </StackHome.Navigator>
     ) : null; // Return null if email is not yet fetched

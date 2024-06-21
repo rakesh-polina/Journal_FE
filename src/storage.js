@@ -12,12 +12,6 @@ const storage = new Storage({
   },
 });
 
-// storage.save({
-//     key: 'logIn',
-//     data: {
-//       loggedIn: false
-//     },
-//     expires: null,
-//   })
+
 
 export default storage;
