@@ -1,5 +1,5 @@
 
-const BASE_URL = 'http://10.227.63.223:3001';
+const BASE_URL = 'http://192.168.1.14:3001';
 
 
 export const API_ENDPOINTS = {
@@ -18,6 +18,8 @@ export const API_ENDPOINTS = {
   UPDATE_EVENT: (id) => `${BASE_URL}/events/${id}`,
   CREATE_EVENT: `${BASE_URL}/events`,
   DELETE_EVENT: (id) => `${BASE_URL}/events/${id}`,
+  GET_DATES_MODE: (email) => `${BASE_URL}/events/dates/${email}`,
+  UPLOAD_FILES: (eventId) => `${BASE_URL}/events/${eventId}/upload`
   SEARCH_EVENTS: (email) => `${BASE_URL}/events/search-filter/${email}`,
 
 };

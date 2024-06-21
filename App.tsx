@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Import the Icon component
 import Ionicons from '@react-native-vector-icons/ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -9,7 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
 import Home from './components/Home/Home';
 import Reminder from './components/Reminder/Reminder';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';   
 import CreateUser from './components/Login/CreateUser';
 import LoginScreen from './components/Login/Login';
 import Password from './components/Login/Password';
@@ -58,29 +59,20 @@ const CalendarNav = () => {
 
 const ReminderNav = () => {
     const [email, setEmail] = useState('');
-
+  
     useEffect(() => {
-        // Fetch the username from storage
-        storage.load({
-            key: 'loginState',
-        })
+      // Fetch the email from storage
+      AsyncStorage.getItem('loginState')
         .then(ret => {
-            if (ret.email) {
-                setEmail(ret.email);
-            }
+          const userData = JSON.parse(ret);
+          if (userData.email) {
+            setEmail(userData.email);
+          }
         })
         .catch(err => {
-            console.warn(err.message);
-            switch (err.name) {
-                case 'NotFoundError':
-                    // Handle not found error
-                    break;
-                case 'ExpiredError':
-                    // Handle expired error
-                    break;
-            }
+          console.warn(err.message);
         });
-    }, []); // Empty dependency array to run this effect only once
+    }, []);
 
     // Render the navigator once the email is fetched
     return email ? (
@@ -112,29 +104,20 @@ const ReminderNav = () => {
 
 const HomeNav = () => {
     const [email, setEmail] = useState('');
-
+  
     useEffect(() => {
-        // Fetch the username from storage
-        storage.load({
-            key: 'loginState',
-        })
+      // Fetch the email from storage
+      AsyncStorage.getItem('loginState')
         .then(ret => {
-            if (ret.email) {
-                setEmail(ret.email);
-            }
+          const userData = JSON.parse(ret);
+          if (userData.email) {
+            setEmail(userData.email);
+          }
         })
         .catch(err => {
-            console.warn(err.message);
-            switch (err.name) {
-                case 'NotFoundError':
-                    // Handle not found error
-                    break;
-                case 'ExpiredError':
-                    // Handle expired error
-                    break;
-            }
+          console.warn(err.message);
         });
-    }, []); // Empty dependency array to run this effect only once
+    }, []);
 
     // Render the navigator once the email is fetched
     return email ? (

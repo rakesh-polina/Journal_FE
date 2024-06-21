@@ -28,6 +28,7 @@ import SearchHeader from './SearchHeader';
 
 function Home({navigation, route}) {
   const  email  = route.params.email;
+  const [markedDates, setMarkedDates] = useState({});
   const [ date, setDate] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state
@@ -48,9 +49,53 @@ function Home({navigation, route}) {
     }
   }, [email, date]);
 
+  const getMarkedDates = useCallback(async () => {
+    try {
+      const response = await axios.get(API_ENDPOINTS.GET_DATES_MODE(email));
+      const data = response.data;
+  
+      const moodColors = {
+        0: 'red',
+        1: 'orange',
+        2: 'blue',
+        3: 'yellow',
+        4: 'pink'
+      };
+  
+      const markedDates = data.reduce((acc, { _id: date, mood }) => {
+        acc[date] = { marked: true, dotColor: moodColors[mood] };
+        return acc;
+      }, {});
+
+      // console.log(markedDates);
+
+      const transformed = {};
+  
+      Object.keys(markedDates).forEach((key) => {
+        const date = new Date(key);
+        const formattedDate = date.toISOString().split('T')[0];
+        transformed[formattedDate] = {
+          marked: markedDates[key].marked,
+          dotColor: markedDates[key].dotColor
+        };
+      });
+// console.log(transformed);
+setMarkedDates(transformed);
+  
+      // return markedDates;
+    } catch (error) {
+      console.error('Error fetching marked dates:', error);
+      setMarkedDates({});
+    }
+  }, [email]);
+
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    getMarkedDates();
+  }, [getMarkedDates]);
 
   useFocusEffect(
     useCallback(() => {
@@ -92,7 +137,7 @@ function Home({navigation, route}) {
             contentInsetAdjustmentBehavior="automatic"
             contentContainerStyle={styles.scrollContainer}>
 
-          <ExCalendar onDateChange={setDate} style={styles.exCalendar} />
+          <ExCalendar onDateChange={setDate} markedDates={markedDates} style={styles.exCalendar} />
             
             <View style={styles.eventContainer}>
             {loading ? (

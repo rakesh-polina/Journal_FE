@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import theme from '../../styles/theme';
@@ -49,48 +49,62 @@ const CustomCalendar = ({ onDateSelected, initialDate }) => {
     }
   };
 
+  const handleYearItemPress = (index) => {
+    setSelectedYear(years[index]);
+    yearScrollViewRef.current.scrollTo({ x: itemWidth * index, animated: true });
+  };
+
+  const handleMonthItemPress = (index) => {
+    setSelectedMonth(index + 1);
+    monthScrollViewRef.current.scrollTo({ x: monthItemWidth * index, animated: true });
+  };
+
   const renderYearItem = (year, index) => {
     const isSelected = selectedYear === year;
     return (
-      <View key={year} style={[styles.item, { width: itemWidth }]}>
-        <Text style={[styles.text, isSelected && styles.selectedText]}>{year}</Text>
-      </View>
+      <TouchableOpacity key={year} onPress={() => handleYearItemPress(index)}>
+        <View style={[styles.item, { width: itemWidth }]}>
+          <Text style={[styles.text, isSelected && styles.selectedText]}>{year}</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
   const renderMonthItem = (month, index) => {
     const isSelected = selectedMonth === index + 1;
     return (
-      <View key={month} style={[styles.item, { width: monthItemWidth }]}>
-        <Text style={[styles.text, isSelected && styles.selectedText]}>{month}</Text>
-      </View>
+      <TouchableOpacity key={month} onPress={() => handleMonthItemPress(index)}>
+        <View style={[styles.item, { width: monthItemWidth }]}>
+          <Text style={[styles.text, isSelected && styles.selectedText]}>{month}</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={[styles.container, { paddingHorizontal: itemWidth * 1.75 }]} 
-          onMomentumScrollEnd={handleYearMomentumScrollEnd}
-          snapToInterval={itemWidth}
-          decelerationRate="fast"
-          ref={yearScrollViewRef}
-        >
-          {years.map(renderYearItem)}
-        </ScrollView>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={[styles.container, { paddingHorizontal: monthItemWidth * 1.75 }]} 
-          onMomentumScrollEnd={handleMonthMomentumScrollEnd}
-          snapToInterval={monthItemWidth}
-          decelerationRate="fast"
-          ref={monthScrollViewRef}
-        >
-          {months.map(renderMonthItem)}
-        </ScrollView>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={[styles.container, { paddingHorizontal: itemWidth * 1.75 }]} 
+        onMomentumScrollEnd={handleYearMomentumScrollEnd}
+        snapToInterval={itemWidth}
+        decelerationRate="fast"
+        ref={yearScrollViewRef}
+      >
+        {years.map(renderYearItem)}
+      </ScrollView>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={[styles.container, { paddingHorizontal: monthItemWidth * 1.75 }]} 
+        onMomentumScrollEnd={handleMonthMomentumScrollEnd}
+        snapToInterval={monthItemWidth}
+        decelerationRate="fast"
+        ref={monthScrollViewRef}
+      >
+        {months.map(renderMonthItem)}
+      </ScrollView>
       <Calendar
         key={currentDate}
         current={currentDate}

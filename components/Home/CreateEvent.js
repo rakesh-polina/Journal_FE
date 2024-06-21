@@ -1,28 +1,88 @@
-import React, { useState, useEffect, useCallback }  from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   TextInput,
   Text,
-  FlatList,
   Image,
   View,
-  Button,
   TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Modal,
   PermissionsAndroid, 
   Platform,
+  Button,
 } from 'react-native';
-import moment from 'moment';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
 import theme from '../../styles/theme';
-import storage from '../../src/storage';
+import { fetchMedia, clusterByDateAndLocation } from './FetchMedia'; // Make sure to import the helper functions
+import { parseISO, format, isValid } from 'date-fns';
+import MediaDisplay from './MediaDisplay';
+import DocDisplay from './DocDisplay';
+import DocumentPicker from 'react-native-document-picker';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import RNFetchBlob from 'rn-fetch-blob';
+import AudioPlayer from './AudioPlayer'; // Adjust the path as needed
 
+const requestStoragePermission = async () => {
+  if (Platform.OS === 'android') {
+    console.log("It is android")
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Storage Permission',
+          message: 'App needs access to your storage to fetch recent activities.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      );
+      console.log('Permission status:', granted);
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  } else {
+    return true;
+  }
+};
 
+const RecommendationsTab = ({ clusters }) => (
+  <FlatList
+    data={clusters}
+    renderItem={({ item }) => (
+      <View style={styles.card}>
+        <Text>
+          {item.date && isValid(parseISO(item.date))
+            ? format(parseISO(item.date), 'PP')
+            : 'No date available'}
+        </Text>
+        <Text>
+          Location: (
+          {item.location && item.location.latitude ? item.location.latitude : 'N/A'}
+          , 
+          {item.location && item.location.longitude ? item.location.longitude : 'N/A'}
+          )
+        </Text>
+        <FlatList
+          data={item.items}
+          renderItem={({ item }) => (
+            <Image source={{ uri: item.uri }} style={{ height: 100, width: 100 }} />
+          )}
+          horizontal
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
+    )}
+    keyExtractor={(item, index) => index.toString()}
+  />
+);
 
 function CreateEvent({ route, navigation }) {
   
@@ -32,15 +92,27 @@ function CreateEvent({ route, navigation }) {
   const [note, setNote] = useState(event ? event.note : '');
   const [location, setLocation] = useState(event ? event.location : '' );
   const [bookmark, setBookmark] = useState(event ? event.bookmark : false);
-  
+  const [clusters, setClusters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const [editing, setEditing] = useState(event? true : false);
-  
-  const audioRecorderPlayer = new AudioRecorderPlayer()
-  const [recordings, setRecordings] = useState([]);
-  const [recording, setRecording] = useState(false);
-  const [currentRecording, setCurrentRecording] = useState(null);
-  
-  
+  const [selectedMedia, setSelectedMedia] = useState(event ? [...event.media.image, ...event.media.video] : []);
+  console.log(selectedMedia);
+  const [selectedDocs, setSelectedDocs] = useState(event ? event.media.documents : []);
+
+  const audioRecorderPlayer = useRef(new AudioRecorderPlayer()).current;
+  const [recordSecs, setRecordSecs] = useState(0);
+  const [recordTime, setRecordTime] = useState('00:00:00');
+  const [currentPositionSec, setCurrentPositionSec] = useState(0);
+  const [currentDurationSec, setCurrentDurationSec] = useState(0);
+  const [playTime, setPlayTime] = useState('00:00:00');
+  const [duration, setDuration] = useState('00:00:00');
+  const [recordedAudio, setRecordedAudio] = useState(event && event.media.voice.length > 0 ? event.media.voice[0] : null);
+  const [isRecording, setIsRecording] = useState(false);
+
+
+
+
 
   const mood = [
     { source: require('../../assets/icons/angry.png'), selectedColor: theme.error }, // Red
@@ -52,119 +124,168 @@ function CreateEvent({ route, navigation }) {
   
   // ATTACHMENTS FUNCTIONS
   const openCamera = () => {
-    console.log(route.params);
+    const options = {
+      mediaType: 'photo', // You can change to 'video' if needed
+      includeBase64: false,
+    };
+  
+    launchCamera(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else {
+        const newMedia = {
+          uri: response.assets[0].uri,
+          type: response.assets[0].type,
+        };
+        setSelectedMedia((prevMedia) => [...prevMedia, newMedia]);
+      }
+    });
   };
+  
 
   const openGallery = () => {
-    console.log('openGallery');
+    const options = {
+      mediaType: 'mixed',
+      includeBase64: false,
+      selectionLimit: 0,
+    };
+  
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else {
+        const newMedia = response.assets.map(asset => ({
+          uri: asset.uri,
+          type: asset.type,
+        }));
+        setSelectedMedia((prevMedia) => [...prevMedia, ...newMedia]);
+        console.log(selectedMedia);
+      }
+    });
   };
 
-  const openAudio = () => {
-    if (recording) {
-      stopRecording();
-    } else {
-      startRecording();
+  const openFiles = async () => {
+    try {
+      const results = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles], allowMultiSelection: true,
+      });
+      setSelectedDocs((prevDocs) => {
+        const uniqueDocs = results.filter(newItem =>
+          !prevDocs.some(prevItem => prevItem.uri === newItem.uri)
+        );
+        return [...prevDocs, ...uniqueDocs];
+      });
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled document picker');
+      } else {
+        console.log('DocumentPicker Error: ', err);
+      }
     }
-  };  
+  };
+
+  const onStartRecord = async () => {
+    try {
+      const dirs = RNFetchBlob.fs.dirs;
+      const path = Platform.select({
+        ios: `${dirs.DocumentDir}/hello.m4a`,
+        android: `${dirs.CacheDir}/hello.mp3`,
+      });
+
+      const uri = await audioRecorderPlayer.startRecorder(path);
+      audioRecorderPlayer.addRecordBackListener((e) => {
+        setRecordSecs(e.currentPosition);
+        setRecordTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)));
+      });
+      console.log('Recording started at: ', uri);
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+    }
+  };
+
+  const onStopRecord = async () => {
+    try {
+      const result = await audioRecorderPlayer.stopRecorder();
+      audioRecorderPlayer.removeRecordBackListener();
+      setRecordSecs(0);
+      setRecordedAudio(result); // Store the recorded audio file's path
+      setIsRecording(false);
+      console.log('Recording stopped: ', result);
+    } catch (err) {
+      console.error('Failed to stop recording:', err);
+    }
+  };
+  
+  const onDeleteRecordedAudio = () => {
+    audioRecorderPlayer.stopPlayer();
+    audioRecorderPlayer.removePlayBackListener();
+    setRecordedAudio(null); // Remove the recorded audio file from the state
+  };
+  
+
+  const openAudio = () => {
+    console.log('openAudio');
+    if (isRecording) {
+      onStopRecord();
+    } else {
+      onStartRecord();
+    }
+    setIsRecording(!isRecording);
+  };
+  
+
 
   const openLocation = () => {
     navigation.navigate('Location',{ location, event });
     console.log('openLocation');
   };
 
-  const openFiles = () => {
-    console.log('openFiles');
-  };
-
 
   //AUDIO AND STORAGE PERMISSIONS REQUEST
+
   const requestAudioPermissions = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        ]);
-  
-        if (
-          granted[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO] === PermissionsAndroid.RESULTS.GRANTED &&
-          granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED &&
-          granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED
-        ) {
-          console.log('You can use the audio and storage');
-        } else {
-          console.log('Permissions denied');
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          ]);
+    
+          return (
+            granted[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO] === PermissionsAndroid.RESULTS.GRANTED &&
+            granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED &&
+            granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED
+          );
+        } catch (err) {
+          console.warn(err);
+          return false;
         }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else if (Platform.OS === 'ios') {
-      try {
+      } else if (Platform.OS === 'ios') {
         const result = await request(PERMISSIONS.IOS.MICROPHONE);
-        if (result === RESULTS.GRANTED) {
-          console.log('You can use the microphone');
-        } else {
-          console.log('Permission denied');
-        }
-      } catch (err) {
-        console.warn(err);
+        return result === RESULTS.GRANTED;
       }
-    }
-  };
+      return true;
+    };
   
   useEffect(() => {
     requestAudioPermissions();
   }, []);
-
-  //AUDIO RECORDING FUNCTIONS
-
-  const startRecording = async () => {
-    const granted = await requestAudioPermissions();
-    if (!granted) {
-      console.warn('Permissions not granted');
-      return;
-    }
-
-    // might need to use redux
-
-    const path = Platform.select({
-      ios: 'hello.m4a',
-      android: 'sdcard/hello.mp3',
-    });
-
-    setRecording(true);
-    const result = await audioRecorderPlayer.startRecorder(path);
-    setCurrentRecording(result);
-  };
-  
-  const stopRecording = async () => {
-    try {
-      const result = await audioRecorderPlayer.stopRecorder();
-      setRecordings([...recordings, { path: result }]);
-      setRecording(false);
-      setCurrentRecording(null);
-      console.log(result);
-    } catch (error) {
-      console.error('Error stopping recording:', error);
-    }
-  };
-
-  const deleteRecording = (index) => {
-    const newRecordings = [...recordings];
-    newRecordings.splice(index, 1);
-    setRecordings(newRecordings);
-  };
-
-  const playRecording = async (path) => {
-    await audioRecorderPlayer.startPlayer(path);
-    await audioRecorderPlayer.setVolume(1.0);
-  };
   
   const addOns = [
     { id: 'camera', src: require('../../assets/icons/camera3.png'), onPress: openCamera },
     { id: 'gallery', src: require('../../assets/icons/gallery.png'), onPress: openGallery },
-    { id: 'audio', src: require('../../assets/icons/audio2.png'), onPress: openAudio },
+    { 
+      id: 'audio', 
+      src: isRecording 
+        ? require('../../assets/icons/stop.png') // Replace with stop icon
+        : require('../../assets/icons/audio2.png'), // Replace with start icon
+      onPress: openAudio 
+    },
     { id: 'location', src: require('../../assets/icons/location2.png'), onPress: openLocation },
     { id: 'file', src: require('../../assets/icons/file3.png'), onPress: openFiles },
   ];
@@ -177,21 +298,68 @@ function CreateEvent({ route, navigation }) {
     // const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
     // const day = String(currentDate.getUTCDate()).padStart(2, '0');
     // const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
-    const eventData = { title, mood: selectedMood, note, date: currentDate, email, bookmark, location };
+    const eventData = { title, mood: selectedMood, note: note || '', date: currentDate, email, bookmark, location: location || '' };
 
     try {
+      let savedEvent;
+  
       if (editing) {
-        await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
+        savedEvent = await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
         setEditing(false);
       } else {
-        await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
+        savedEvent = await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
       }
+  
+      const eventId = savedEvent.data._id;
+  
+      // Upload files
+      const formData = new FormData();
+  
+      selectedMedia.forEach((item, index) => {
+        if (item.type === 'image/jpeg') {
+          formData.append('image', {
+            uri: item.uri,
+            type: 'image/jpeg',
+            name: `image_${index}.jpg`
+          });
+        } else if (item.type === 'video/mp4') {
+          formData.append('video', {
+            uri: item.uri,
+            type: 'video/mp4',
+            name: `video_${index}.mp4`
+          });
+        }
+      });
+  
+      selectedDocs.forEach((doc, index) => {
+        formData.append('documents', {
+          uri: doc.uri,
+          type: 'application/pdf',
+          name: `document_${index}.pdf`
+        });
+      });
+  
+      if (recordedAudio) {
+        formData.append('voice', {
+          uri: recordedAudio.uri,
+          type: 'audio/mpeg',
+          name: `audio.mp3`
+        });
+      }
+
+      console.log(formData)
+      console.log(eventId)
+  
+      await axios.post(API_ENDPOINTS.UPLOAD_FILES(eventId), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+  
       navigation.goBack();
     } catch (error) {
       console.error('Error saving event:', error);
     }
   };
-
+  
   const handleSelectMood = (index) => {
     setSelectedMood(index);
   };
@@ -199,6 +367,38 @@ function CreateEvent({ route, navigation }) {
   const handleIconPress = (onPress) => {
     onPress(); // Call the respective onPress function
   };
+
+  const handleRemoveMedia = (index) => {
+    setSelectedMedia(prevMedia => prevMedia.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveDoc = (index) => {
+    setSelectedDocs(prevDocs => prevDocs.filter((_, i) => i !== index));
+  };
+
+  const toggleRecommendations = () => {
+    setShowRecommendations(!showRecommendations);
+  };
+
+  useEffect(() => {
+    const loadMedia = async () => {
+      console.log('Requesting storage permission');
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        console.log('Permission denied');
+        return;
+      }
+      console.log('Fetching media');
+      const items = await fetchMedia();
+      // console.log('Fetched items:', items);
+      const clustered = clusterByDateAndLocation(items, 1); // 1 km max distance for clustering
+      // console.log('Clustered items:', clustered);
+      setClusters(clustered);
+      setLoading(false);
+    };
+
+    loadMedia();
+  }, []);
 
   const handleBookmark  = () => {
     setBookmark((prev) => !prev);
@@ -226,13 +426,12 @@ function CreateEvent({ route, navigation }) {
               ))}
           </View>
           <TextInput
-            style={[styles.notesInput, {height: 60}]}
+            style={[styles.notesInput, { height: 60 }]}
             placeholder="Title"
             value={title}
             onChangeText={setTitle}
             multiline
           />
-
           <TextInput
             style={styles.notesInput}
             placeholder="Journal starts here..."
@@ -240,21 +439,12 @@ function CreateEvent({ route, navigation }) {
             onChangeText={setNote}
             multiline
           />
-          <Text>{location}</Text>
-          <View>
-            {recordings.map((recording, index) => (
-              <View key={index} style={styles.recordingContainer}>
-                <Text>{`Recording ${index + 1}`}</Text>
-                <TouchableOpacity onPress={() => playRecording(recording.path)}>
-                  <Text style={styles.playButton}>Play</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => deleteRecording(index)}>
-                  <Text style={styles.deleteButton}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
 
+<MediaDisplay media={selectedMedia} onRemove={handleRemoveMedia} />
+<DocDisplay docs={selectedDocs} onRemove={handleRemoveDoc} />
+
+          <Text>{location}</Text>
+        
           <View style={styles.iconContainer}>
             {addOns.map((addOn, index) => (
               <TouchableOpacity
@@ -262,31 +452,55 @@ function CreateEvent({ route, navigation }) {
                 onPress={() => handleIconPress(addOn.onPress)}
                 style={[
                   styles.iconButton,
-                  addOn.id === 'audio' && (recording ? styles.audioIconButtonRecording : styles.iconButton),
+                  addOn.id === 'audio',
                 ]}
               >
-                <Image
-                  source={addOn.src}
-                  style={[
-                    styles.icon,
-                    addOn.id === 'audio' && (recording ? styles.audioIconRecording : styles.icon),
-                  ]}
-                />
+                <Image source={addOn.src} style={styles.icon} />
               </TouchableOpacity>
             ))}
           </View>
+
+          {recordedAudio && (
+            <AudioPlayer 
+              recordedAudio={recordedAudio} 
+              onDeleteRecordedAudio={onDeleteRecordedAudio} 
+            />
+        )}
+
+
+          <TouchableOpacity onPress={toggleRecommendations} style={styles.recommendationsButton}>
+            <Text style={styles.recommendationsButtonText}>Show Recommendations</Text>
+          </TouchableOpacity>
+
+          {loading && <ActivityIndicator size="large" color={theme.primary} />}
           
         </View>
       </ScrollView>
-        <View style={styles.setButtonContainer}>
-          <TouchableOpacity style={styles.setButton} onPress={handleSave}>
-            <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bookmarkButton} onPress={handleBookmark}>
+      <View style={styles.setButtonContainer}>
+        <TouchableOpacity style={styles.setButton} onPress={handleSave}>
+          <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bookmarkButton} onPress={handleBookmark}>
             <Image source={bookmark? require('../../assets/icons/bookmark.png') : require('../../assets/icons/bookmark-outline.png')} style={styles.bookmark} tintColor={theme.primary}/>
           </TouchableOpacity>
-
-        </View>
+      </View>
+      {showRecommendations && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showRecommendations}
+          onRequestClose={toggleRecommendations}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity onPress={toggleRecommendations} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              <RecommendationsTab clusters={clusters} />
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -306,10 +520,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 0,
   },
-  timePickerContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
   notesInput: {
     backgroundColor: theme.greyLight,
     elevation: 3,
@@ -321,7 +531,7 @@ const styles = StyleSheet.create({
     height: 90,
     textAlignVertical: 'top',
   },
-  setButtonContainer:{
+  setButtonContainer: {
     padding: 20,
     alignItems: 'center',
     paddingBottom: 10, 
@@ -378,6 +588,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     padding: 10,
   },
+  audioControlContainer: {
+  padding: 10,
+  alignItems: 'center',
+  },
+  audioControl: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginVertical: 10,
+  },
   //recording icon button
   audioIconButtonRecording: {
     backgroundColor: theme.primary,
@@ -404,7 +625,44 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
+  recommendationsButton: {
+    backgroundColor: theme.primary,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  recommendationsButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    maxHeight: '50%',
+  },
+  closeButton: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  closeButtonText: {
+    color: theme.primary,
+    fontSize: 16,
+  },
+  card: {
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    elevation: 3,
+  },
 });
-
 
 export default CreateEvent;

@@ -103,6 +103,8 @@ function Location({ navigation, route }) {
       if (query.trim()) {
         const updatedEvent = event ? { ...event, location: query } : { location: query };
         navigation.navigate('CreateEvent', { location: query, event: updatedEvent });
+        const updatedEvent = event ? { ...event, location: query } : { location: query };
+        navigation.navigate('CreateEvent', { location: query, event: updatedEvent });
       } else {
         Alert.alert('Error', 'Please enter or select a location');
       }
