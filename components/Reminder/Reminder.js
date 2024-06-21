@@ -7,15 +7,28 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
   Image,
 } from 'react-native';
 import { API_ENDPOINTS } from '../../src/config';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ReminderCard from '../cards/reminderCard';
 import theme from '../../styles/theme';
+import SearchHeader from '../Home/SearchHeader';
+import debounce from 'lodash/debounce';
+
 
 const Reminder = ({ route }) => {
   const { email } = route.params;
+
+  //search variables
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+
   const [reminders, setReminders] = useState([]);
   const navigation = useNavigation();
 
@@ -24,9 +37,42 @@ const Reminder = ({ route }) => {
     setReminders(result.data);
   };
 
+  const searchAPI = async (searchQuery) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(API_ENDPOINTS.SEARCH_REMINDER(email), {q: searchQuery});
+      setReminders(response.data);
+      console.log(response.data)
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounce the searchAPI function
+  const debouncedSearch = useCallback(
+    debounce((searchQuery) => {
+      searchAPI(searchQuery);
+    }, 300), // 300 milliseconds delay
+    []
+  );
+
   useEffect(() => {
-    fetchReminders();
-  }, [email]);
+    if (query) {
+      debouncedSearch(query);
+    } else {
+      fetchReminders();
+    }
+    // Cancel the debounce on useEffect cleanup
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [query, debouncedSearch]);
+
+  // useEffect(() => {
+  //   fetchReminders();
+  // }, [email]);
 
   useFocusEffect(
     useCallback(() => {
@@ -46,8 +92,24 @@ const Reminder = ({ route }) => {
     fetchReminders();
   };
 
+  const toggleSearchBar = () => {
+    setIsSearchVisible((prev) => !prev);
+  };
+
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      <SearchHeader componentName="Remainder" toggleSearchBar={toggleSearchBar}/>
+      {isSearchVisible ? (<View style={styles.searchContainer}>
+            <TextInput
+            style={styles.searchBar}
+            placeholder="Search..."
+            value={query}
+            onChangeText={setQuery}
+            // Add any additional props or state management for search functionality
+            />
+          
+            </View>) : null}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           {reminders.map(reminder => (
@@ -115,6 +177,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 80,
     height: '100%',
+  },
+
+  //SEARCH BAR
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 0,
+    borderColor: theme.primary,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    margin: 10,
+  },
+  searchBar: {
+    flex: 1,
+    height: 40,
   },
 });
 

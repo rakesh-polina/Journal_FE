@@ -1,0 +1,22 @@
+TEJA :
+
+1.
+Excalendar UI adjustments. 
+I am not able to minimize it when there are more than 5 events on the page
+Need to bring it out of scroll view and adjust some styles
+
+
+2.
+Splashscreen doesnt look good 
+
+
+3.
+Reloading the whole application should not happen while loggin out
+
+
+4.
+Back navigation should be completely removed in some cases 
+ex:(Should not be possible to go to login from home)
+
+
+Half of my brain is ferraro rocher, other half is weed
