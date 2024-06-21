@@ -10,19 +10,32 @@ import {
   View
 } from 'react-native';
 import { API_ENDPOINTS } from '../../src/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Password = ({route,navigation}) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const {userData} = route.params;
+
+  const validatePassword = (password) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*])[A-Za-z\d@#$%^&*]{8,14}$/;
+    return passwordRegex.test(password);
+  };
+
   const handleCreateAccount = () => {
     // Validate password and confirm password
     if (!password.trim()) {
-      alert('Error', 'Please enter a password');
+      alert('Error, Please enter a password');
+      return;
+    }
+    if (!validatePassword(password)) {
+      alert(
+        'Error, Password must be 8-14 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character.'
+      );
       return;
     }
     if (password !== confirmPassword) {
-      alert('Error', 'Passwords do not match');
+      alert('Error, Passwords do not match');
       return;
     }
 
@@ -46,9 +59,13 @@ const Password = ({route,navigation}) => {
         }
         return response.json();
       })
-      .then(data => {
+      .then(async data => {
         console.log('User created successfully:', data);
-        navigation.navigate('ProfilePicture', { email: data.email });
+        await AsyncStorage.setItem('loginState', JSON.stringify({ email: data.email }));
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'ProfilePicture', params: { email: data.email } }],
+        });
       })
       .catch(error => {
         console.log(JSON.stringify(userData));
@@ -62,6 +79,20 @@ const Password = ({route,navigation}) => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.formContainer}>
           <Text style={styles.title}>Create Password</Text>
+          <Text style={styles.instructionText}>
+          <Text style={{ fontWeight: 'bold' }}>Password must:</Text>
+            {"\n"} 
+            * Have 8-14 characters
+            {"\n"} 
+            * Contain at least one lowercase letter
+            {"\n"} 
+            * Contain at least one uppercase letter
+            {"\n"} 
+            * Contain at least one number
+            {"\n"} 
+            * Contain at least one special character like #, @, $, %, &, *
+            {"\n"} 
+          </Text>
           <TextInput
             style={styles.input}
             placeholder="Password"
