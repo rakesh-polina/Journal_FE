@@ -1,7 +1,6 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import Exif from 'react-native-exif';
 import { parseISO, isSameDay, format } from 'date-fns';
-import { launchImageLibrary } from 'react-native-image-picker';
 
 const parseCustomDate = (dateString) => {
   if (!dateString) return null;
@@ -29,14 +28,14 @@ const fetchMedia = async () => {
       first: 50, // Number of items to fetch
       assetType: 'All', // Can be 'Photos', 'Videos' or 'All'
     });
-    console.log('Media fetched from Camera Roll:', media);
+    // console.log('Media fetched from Camera Roll:', media);
 
     const items = await Promise.all(
       media.edges.map(async (edge) => {
         const { node } = edge;
         try {
           const metadata = await Exif.getExif(node.image.uri);
-          console.log('Metadata extracted:', metadata);
+          // console.log('Metadata extracted:', metadata);
 
           return {
             uri: node.image.uri,
@@ -121,7 +120,7 @@ const haversineDistance = (coords1, coords2) => {
 
 const clusterByDateAndLocation = (items, maxDistance) => {
   const clusters = [];
-  console.log('Starting clustering process with maxDistance:', maxDistance);
+  // console.log('Starting clustering process with maxDistance:', maxDistance);
 
   items.forEach((item, itemIndex) => {
     let foundCluster = false;

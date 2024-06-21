@@ -101,12 +101,12 @@ function Location({ navigation, route }) {
     
     const handleSetLocation = () => {
       if (query.trim()) {
-        event.location = query;
-        navigation.navigate('CreateEvent', { location: query, event });
+        const updatedEvent = event ? { ...event, location: query } : { location: query };
+        navigation.navigate('CreateEvent', { location: query, event: updatedEvent });
       } else {
         Alert.alert('Error', 'Please enter or select a location');
       }
-    };
+    };    
 
 
   return (
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
       },
       searchBar: {
         // flex: 1,
-        color: '#fff',
+        color: 'black',
         height: 60,
         marginHorizontal: 5,
         borderColor: '#ccc',
