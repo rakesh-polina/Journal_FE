@@ -4,7 +4,6 @@ import SplashScreen from 'react-native-splash-screen';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Import the Icon component
-import Ionicons from '@react-native-vector-icons/ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
@@ -21,6 +20,8 @@ import Profile from './components/Profile';
 import HeaderButton from './components/cards/headerButton';
 
 import storage from './src/storage';
+import { Provider } from 'react-redux';
+import store from './src/store'
 import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
 import ProfilePicUpload from './components/Login/ProfilePicture';
@@ -61,18 +62,27 @@ const ReminderNav = () => {
     const [email, setEmail] = useState('');
   
     useEffect(() => {
-      // Fetch the email from storage
-      AsyncStorage.getItem('loginState')
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
         .then(ret => {
-          const userData = JSON.parse(ret);
-          if (userData.email) {
-            setEmail(userData.email);
-          }
+            if (ret.email) {
+                setEmail(ret.email);
+            }
         })
         .catch(err => {
-          console.warn(err.message);
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
         });
-    }, []);
+    }, []); 
 
     // Render the navigator once the email is fetched
     return email ? (
@@ -106,16 +116,25 @@ const HomeNav = () => {
     const [email, setEmail] = useState('');
   
     useEffect(() => {
-      // Fetch the email from storage
-      AsyncStorage.getItem('loginState')
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
         .then(ret => {
-          const userData = JSON.parse(ret);
-          if (userData.email) {
-            setEmail(userData.email);
-          }
+            if (ret.email) {
+                setEmail(ret.email);
+            }
         })
         .catch(err => {
-          console.warn(err.message);
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
         });
     }, []);
 
@@ -248,6 +267,7 @@ const App = () => {
     }
     
     return (
+        <Provider store={store}>
         <NavigationContainer>
             {!loggedIn ? (
                 <Stack.Navigator
@@ -282,6 +302,7 @@ const App = () => {
                 <MainNav />
             )}
         </NavigationContainer>
+        </Provider>
     );
 }
 

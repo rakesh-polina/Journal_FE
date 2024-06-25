@@ -1,9 +1,9 @@
 
-const BASE_URL = 'http://192.168.1.14:3001';
+const BASE_URL = 'http://10.227.63.223:3001';
 
 
 export const API_ENDPOINTS = {
-  USERS: `${BASE_URL}/users/`,
+  CREATE_USER: `${BASE_URL}/users/`,
   LOGIN: `${BASE_URL}/users/login`,
   USER: (email) => `${BASE_URL}/users/${email}`,
   UPLOAD_PROFILE_PICTURE: (email) => `${BASE_URL}/users/upload-profile-picture/${email}`,
@@ -19,7 +19,7 @@ export const API_ENDPOINTS = {
   CREATE_EVENT: `${BASE_URL}/events`,
   DELETE_EVENT: (id) => `${BASE_URL}/events/${id}`,
   GET_DATES_MODE: (email) => `${BASE_URL}/events/dates/${email}`,
-  UPLOAD_FILES: (eventId) => `${BASE_URL}/events/${eventId}/upload`
+  UPLOAD_FILES: (eventId) => `${BASE_URL}/events/${eventId}/upload`,
   SEARCH_EVENTS: (email) => `${BASE_URL}/events/search-filter/${email}`,
 
 };

@@ -19,4 +19,9 @@ Back navigation should be completely removed in some cases
 ex:(Should not be possible to go to login from home)
 
 
+5.
+Something wrong with upload files while updating a event previous uploads are trasged at times. 
+
+
+
 Half of my brain is ferraro rocher, other half is weed

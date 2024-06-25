@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { API_ENDPOINTS } from '../../src/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../../src/storage';
 
 const Password = ({route,navigation}) => {
   const [password, setPassword] = useState('');
@@ -46,7 +47,7 @@ const Password = ({route,navigation}) => {
     userData.password = password;
 
     // Send user data with password to the server
-    fetch(API_ENDPOINTS.USERS, {
+    fetch(API_ENDPOINTS.CREATE_USER, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +62,26 @@ const Password = ({route,navigation}) => {
       })
       .then(async data => {
         console.log('User created successfully:', data);
-        await AsyncStorage.setItem('loginState', JSON.stringify({ email: data.email }));
+        // await AsyncStorage.setItem('loginState', JSON.stringify({ email: data.email }));
+
+        // Storing user data in variables
+        const name = userData.name;
+        const username = userData.username;
+        const phone = userData.phone;
+        const bday = userData.bday;
+        const email = userData.email
+
+        storage.save({
+          key: 'loginState',
+          data: {
+            name: name,
+            username: username,
+            phone: phone,
+            bday: bday,
+            email: email,
+          },
+          expires: null, 
+        })
         navigation.reset({
           index: 0,
           routes: [{ name: 'ProfilePicture', params: { email: data.email } }],
@@ -121,7 +141,7 @@ const Password = ({route,navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: '#fff',
   },
   scrollView: {
     flexGrow: 1,
@@ -146,7 +166,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#00AAFF',
     paddingVertical: 12,
     borderRadius: 5,
   },

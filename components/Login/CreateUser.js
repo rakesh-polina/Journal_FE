@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: 'black'
+    backgroundColor: '#fff'
   },
   title: {
     fontSize: 24,
@@ -113,11 +113,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10,
+    color: '#000',
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color: '#fff',
+    color: '#000',
   },
   picker: {
     height: 40,

@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import debounce from 'lodash.debounce';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { setEventState, resetEventState } from '../../src/slices/eventSlice';
 import { API_ENDPOINTS } from '../../src/config';
 
 import Event from '../cards/event';
@@ -32,6 +34,16 @@ function Home({navigation, route}) {
   const [ date, setDate] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state
+  // const formattedDate =  formatDate(date);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      dispatch(resetEventState());
+    });
+
+    return unsubscribe;
+  }, [dispatch, navigation]);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true); // Start loading
@@ -79,8 +91,8 @@ function Home({navigation, route}) {
           dotColor: markedDates[key].dotColor
         };
       });
-// console.log(transformed);
-setMarkedDates(transformed);
+  // console.log(transformed);
+  setMarkedDates(transformed);
   
       // return markedDates;
     } catch (error) {
@@ -102,6 +114,11 @@ setMarkedDates(transformed);
       fetchEvents();
     }, [fetchEvents])
   );
+
+  const handleAddEvent = () => {
+    const formattedDate = formatDate(date);
+    navigation.navigate('CreateEvent', { email, formattedDate });
+  };
 
   const handleEdit = (event) => {
     navigation.navigate('CreateEvent', { 
@@ -160,7 +177,7 @@ setMarkedDates(transformed);
       <View style={styles.addContainer}>
         <TouchableOpacity 
           style={styles.addButton} 
-          onPress={() => navigation.navigate('CreateEvent', { formattedDate })}
+          onPress={handleAddEvent}
           // onPress={() => navigation.navigate('CreateEvent', { email })}
         >
           <Image source={require('../../assets/icons/plus.png')} style={{tintColor:'#fff'}}/>

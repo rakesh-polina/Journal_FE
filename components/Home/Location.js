@@ -24,7 +24,7 @@ const GOOGLE_PLACES_API_KEY = 'AIzaSyAZZOS-22GHCganlyyg5slPP_RXwA-KuJE';
 const GEOCODING_API_KEY = 'AIzaSyA6y3A6O8Db6hYAaogtYLHKV_iYdyZxsAI';
 
 function Location({ navigation, route }) {
-    const { location: initialLocation, event } = route.params || {};
+    const { location: initialLocation } = route.params || {};
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -101,10 +101,11 @@ function Location({ navigation, route }) {
     
     const handleSetLocation = () => {
       if (query.trim()) {
-        const updatedEvent = event ? { ...event, location: query } : { location: query };
-        navigation.navigate('CreateEvent', { location: query, event: updatedEvent });
-        const updatedEvent = event ? { ...event, location: query } : { location: query };
-        navigation.navigate('CreateEvent', { location: query, event: updatedEvent });
+        // const updatedEvent = event ? { ...event, location: query } : { location: query };
+        // navigation.navigate('CreateEvent', { location: query, event: updatedEvent });
+        // const updatedEvent = event ? { ...event, location: query } : { location: query };
+        // console.log(updatedEvent);
+        navigation.navigate('CreateEvent', { location: query });
       } else {
         Alert.alert('Error', 'Please enter or select a location');
       }
