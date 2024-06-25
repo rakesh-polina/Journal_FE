@@ -11,7 +11,7 @@ const HeaderButton = () => {
     }
     return (
       <TouchableOpacity onPress={() => openSettings()} style={styles.button}>
-        <Text style={styles.text}>.</Text>
+        <Text style={styles.text}>DP</Text>
       </TouchableOpacity>
     );
   };

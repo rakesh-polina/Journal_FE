@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Import the Icon component
-import Ionicons from '@react-native-vector-icons/ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
@@ -20,11 +20,14 @@ import Profile from './components/Profile';
 import HeaderButton from './components/cards/headerButton';
 
 import storage from './src/storage';
+import { Provider } from 'react-redux';
+import store from './src/store'
 import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
-import SearchHeader from './components/cards/searchHeader';
+import ProfilePicUpload from './components/Login/ProfilePicture';
 import ProfilePicture from './components/Login/ProfilePicture';
 import Location from './components/Home/Location';
+import Search from './components/Home/Search';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -59,18 +62,27 @@ const ReminderNav = () => {
     const [email, setEmail] = useState('');
   
     useEffect(() => {
-      // Fetch the email from storage
-      AsyncStorage.getItem('loginState')
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
         .then(ret => {
-          const userData = JSON.parse(ret);
-          if (userData.email) {
-            setEmail(userData.email);
-          }
+            if (ret.email) {
+                setEmail(ret.email);
+            }
         })
         .catch(err => {
-          console.warn(err.message);
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
         });
-    }, []);
+    }, []); 
 
     // Render the navigator once the email is fetched
     return email ? (
@@ -92,6 +104,7 @@ const ReminderNav = () => {
                 name="Reminder" 
                 component={Reminder} 
                 initialParams={{ email: email }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen name="CreateReminder" component={CreateReminder} initialParams={{ email: email }}/>
             <Stack.Screen name="Profile" component={Profile}/>
@@ -103,22 +116,31 @@ const HomeNav = () => {
     const [email, setEmail] = useState('');
   
     useEffect(() => {
-      // Fetch the email from storage
-      AsyncStorage.getItem('loginState')
+        // Fetch the username from storage
+        storage.load({
+            key: 'loginState',
+        })
         .then(ret => {
-          const userData = JSON.parse(ret);
-          if (userData.email) {
-            setEmail(userData.email);
-          }
+            if (ret.email) {
+                setEmail(ret.email);
+            }
         })
         .catch(err => {
-          console.warn(err.message);
+            console.warn(err.message);
+            switch (err.name) {
+                case 'NotFoundError':
+                    // Handle not found error
+                    break;
+                case 'ExpiredError':
+                    // Handle expired error
+                    break;
+            }
         });
     }, []);
 
     // Render the navigator once the email is fetched
     return email ? (
-        <StackHome.Navigator
+        <Stack.Navigator
         screenOptions={({ route }) =>({
             headerStyle: {
               backgroundColor: theme.primary, // Header background color
@@ -129,23 +151,26 @@ const HomeNav = () => {
                 marginLeft: 10,
                 //   fontWeight: 'bold', // Custom title font style
             },
-            headerRight: () => (
-                <SearchHeader 
-                    routeName={route.name} 
-                    toggleSearchBar={route.params?.toggleSearchBar|| (() => {})} 
-                />
-            ),
+            headerRight: () => <HeaderButton/>,
+            // headerRight: () => (
+            //     <SearchHeader 
+            //         routeName={route.name} 
+            //         toggleSearchBar={route.params?.toggleSearchBar|| (() => {})} 
+            //     />
+            // ),
           })}
           >
-            <StackHome.Screen 
+            <Stack.Screen 
                 name="Home" 
                 component={Home}
                 initialParams={{ email: email }}
+                options={{ headerShown: false }}
                 />
-            <StackHome.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
-            <StackHome.Screen name="Location" component={Location}/>
-            <StackHome.Screen name="Profile" component={Profile}/>
-        </StackHome.Navigator>
+            <Stack.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
+            <Stack.Screen name="Location" component={Location}/>
+            <Stack.Screen name="Profile" component={Profile}/>
+            <Stack.Screen name="Search" component={Search} initialParams={{ email: email }}/>
+        </Stack.Navigator>
     ) : null; // Return null if email is not yet fetched
 }
 
@@ -212,37 +237,37 @@ const MainNav = () => {
 };
 
 const App = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [loggedIn, setLoggedIn] = useState(false);
-  
+    const [loggedIn, setLoggedIn] = useState<boolean>(false); // State to track login status
+    const [isSplashVisible, setSplashVisible] = useState(true);
+
     useEffect(() => {
-      const checkLoginStatus = async () => {
-        try {
-          const userData = await AsyncStorage.getItem('loginState');
-          if (userData) {
-            setLoggedIn(true);
-          }
-        } catch (error) {
-          console.warn(error.message);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-  
-      checkLoginStatus();
+        storage.load({ key: 'loginState' })
+            .then(ret => {
+                if (ret.email) {
+                    setLoggedIn(true);
+                }
+            })
+            .catch(err => {
+                console.warn(err.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setSplashVisible(false);
+                    SplashScreen.hide();
+                }, 2000); // Adjust the delay as needed
+            });
     }, []);
-  
-    if (isLoading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      );
+
+    if (isSplashVisible) {
+        return (
+            <View style={styles.splashContainer}>
+                <Image source={require('./assets/icons/logo.png')} style={styles.logo} />
+            </View>
+        );
     }
-  
     
     return (
-        // <Calendar/>
+        <Provider store={store}>
         <NavigationContainer>
             {!loggedIn ? (
                 <Stack.Navigator
@@ -277,6 +302,7 @@ const App = () => {
                 <MainNav />
             )}
         </NavigationContainer>
+        </Provider>
     );
 }
 
@@ -296,6 +322,17 @@ const styles = StyleSheet.create({
     },
     highlight: {
       fontWeight: '700',
+    },
+    splashContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff', // Adjust the background color if needed
+    },
+    logo: {
+        width: 200,
+        height: 200,
+        resizeMode: 'contain',
     },
   });
 

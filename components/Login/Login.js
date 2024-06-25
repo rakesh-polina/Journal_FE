@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, NativeModules } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
-// import storage from '../../src/storage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../../src/storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
 
@@ -14,7 +14,7 @@ const LoginScreen = () => {
 
 
   const navigation = useNavigation();
-  const handleLogin = async () => {
+  const handleLogin = () => {
     // Perform input validation
     if (!email.trim() || !password.trim()) {
       Alert.alert('Error', 'Please enter both username and password');
@@ -25,46 +25,105 @@ const LoginScreen = () => {
     const requestData = JSON.stringify({ email, password });
     console.log('Request Body:', requestData);
 
-    try {
-      const response = await fetch(API_ENDPOINTS.LOGIN, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+    // Make an HTTP request to your backend endpoint for user authentication
+    fetch(API_ENDPOINTS.LOGIN, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    })
+      .then(response => {
+        // console.log(response);
+        if (!response.ok) {
+          throw new Error('Invalid credentials');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const { user } = data; // Extracting user data from the response
+
+        // Storing user data in variables
+        const name = user.name;
+        const username = user.username;
+        const phone = user.phone;
+        const bday = user.bday;
+
+        storage.save({
+          key: 'loginState',
+          data: {
+            name: name,
+            username: username,
+            phone: phone,
+            bday: bday,
+            email: email,
+          },
+          expires: null, 
+        })
+        setLoading(false);
+        // NativeModules.DevSettings.reload();
+        navigation.navigate("MainNav");
+        console.log('Login successful:', data);
+      })
+      .catch(error => {
+        // Handle authentication error
+        setLoading(false);
+        console.error('Login failed:', error);
+        setError(error.message);
+        Alert.alert('Error', error.message);
       });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await response.json();
-      const { user } = data; // Extracting user data from the response
-
-      // Storing user data in AsyncStorage
-      await AsyncStorage.setItem('loginState', JSON.stringify({
-        name: user.name,
-        username: user.username,
-        phone: user.phone,
-        bday: user.bday,
-        email: email,
-        token: data.token, // Assuming your API returns a token
-      }));
-
-      setLoading(false);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainNav' }],
-      });
-      console.log('Login successful:', data);
-    } catch (error) {
-      // Handle authentication error
-      setLoading(false);
-      console.error('Login failed:', error);
-      setError(error.message);
-      Alert.alert('Error', error.message);
-    }
   };
+  // const handleLogin = async () => {
+  //   // Perform input validation
+  //   if (!email.trim() || !password.trim()) {
+  //     Alert.alert('Error', 'Please enter both username and password');
+  //     return;
+  //   }
+  //   setLoading(true);
+
+  //   const requestData = JSON.stringify({ email, password });
+  //   console.log('Request Body:', requestData);
+
+  //   try {
+  //     const response = await fetch(API_ENDPOINTS.LOGIN, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Invalid credentials');
+  //     }
+
+  //     const data = await response.json();
+  //     const { user } = data; // Extracting user data from the response
+
+  //     // Storing user data in AsyncStorage
+  //     await AsyncStorage.setItem('loginState', JSON.stringify({
+  //       name: user.name,
+  //       username: user.username,
+  //       phone: user.phone,
+  //       bday: user.bday,
+  //       email: email,
+  //       token: data.token, // Assuming your API returns a token
+  //     }));
+
+  //     setLoading(false);
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: 'MainNav' }],
+  //     });
+  //     console.log('Login successful:', data);
+  //   } catch (error) {
+  //     // Handle authentication error
+  //     setLoading(false);
+  //     console.error('Login failed:', error);
+  //     setError(error.message);
+  //     Alert.alert('Error', error.message);
+  //   }
+  // };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
