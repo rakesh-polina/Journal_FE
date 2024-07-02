@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
+// import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Import the Icon component
 import Ionicons from '@react-native-vector-icons/ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -21,10 +23,10 @@ import HeaderButton from './components/cards/headerButton';
 import storage from './src/storage';
 import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
-import SearchHeader from './components/cards/searchHeader';
 import ProfilePicUpload from './components/Login/ProfilePicture';
 import ProfilePicture from './components/Login/ProfilePicture';
 import Location from './components/Home/Location';
+import Search from './components/Home/Search';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -101,6 +103,7 @@ const ReminderNav = () => {
                 name="Reminder" 
                 component={Reminder} 
                 initialParams={{ email: email }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen name="CreateReminder" component={CreateReminder} initialParams={{ email: email }}/>
             <Stack.Screen name="Profile" component={Profile}/>
@@ -136,7 +139,7 @@ const HomeNav = () => {
 
     // Render the navigator once the email is fetched
     return email ? (
-        <StackHome.Navigator
+        <Stack.Navigator
         screenOptions={({ route }) =>({
             headerStyle: {
               backgroundColor: theme.primary, // Header background color
@@ -147,23 +150,26 @@ const HomeNav = () => {
                 marginLeft: 10,
                 //   fontWeight: 'bold', // Custom title font style
             },
-            headerRight: () => (
-                <SearchHeader 
-                    routeName={route.name} 
-                    toggleSearchBar={route.params?.toggleSearchBar|| (() => {})} 
-                />
-            ),
+            headerRight: () => <HeaderButton/>,
+            // headerRight: () => (
+            //     <SearchHeader 
+            //         routeName={route.name} 
+            //         toggleSearchBar={route.params?.toggleSearchBar|| (() => {})} 
+            //     />
+            // ),
           })}
           >
-            <StackHome.Screen 
+            <Stack.Screen 
                 name="Home" 
                 component={Home}
                 initialParams={{ email: email }}
+                options={{ headerShown: false }}
                 />
-            <StackHome.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
-            <StackHome.Screen name="Location" component={Location}/>
-            <StackHome.Screen name="Profile" component={Profile}/>
-        </StackHome.Navigator>
+            <Stack.Screen name="CreateEvent" component={CreateEvent} initialParams={{ email: email }}/>
+            <Stack.Screen name="Location" component={Location}/>
+            <Stack.Screen name="Profile" component={Profile}/>
+            <Stack.Screen name="Search" component={Search} initialParams={{ email: email }}/>
+        </Stack.Navigator>
     ) : null; // Return null if email is not yet fetched
 }
 
@@ -231,37 +237,37 @@ const MainNav = () => {
 
 const App = () => {
     const [loggedIn, setLoggedIn] = useState<boolean>(false); // State to track login status
-    // const [loggedIn, setLoggedIn] = useState<boolean>(true); //testing
-    storage.load({
-        key: 'loginState',
-        // autoSync: true,
-        // syncInBackground: true,
-        // syncParams: {
-        // extraFetchOptions: {
-        //     // blahblah
-        // },
-        // someFlag: true
-        // }
-    })
-    .then(ret => {
-        if (ret.email) {
-            setLoggedIn(true);
-        }
-    })
-    .catch(err => {
-        console.warn(err.message);
-        switch (err.name) {
-        case 'NotFoundError':
-            // TODO;
-            break;
-        case 'ExpiredError':
-            // TODO
-            break;
-        }
-    });
+    const [isSplashVisible, setSplashVisible] = useState(true);
+
+    useEffect(() => {
+        storage.load({ key: 'loginState' })
+            .then(ret => {
+                if (ret.email) {
+                    setLoggedIn(true);
+                }
+            })
+            .catch(err => {
+                console.warn(err.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setSplashVisible(false);
+                    SplashScreen.hide();
+                }, 2000); // Adjust the delay as needed
+            });
+    }, []);
+
+    if (isSplashVisible) {
+        return (
+            <View style={styles.splashContainer}>
+                <Image source={require('./assets/icons/logo.png')} style={styles.logo} />
+            </View>
+        );
+    }
     
     return (
         // <Calendar/>
+        // <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
             {!loggedIn ? (
                 <Stack.Navigator
@@ -296,6 +302,7 @@ const App = () => {
                 <MainNav />
             )}
         </NavigationContainer>
+        // </GestureHandlerRootView>
     );
 }
 
@@ -315,6 +322,17 @@ const styles = StyleSheet.create({
     },
     highlight: {
       fontWeight: '700',
+    },
+    splashContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff', // Adjust the background color if needed
+    },
+    logo: {
+        width: 200,
+        height: 200,
+        resizeMode: 'contain',
     },
   });
 

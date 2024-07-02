@@ -37,7 +37,7 @@ const ExCalendar = (props) => {
       date={initialDate}
       onDateChanged={onDateChanged}
       // onMonthChange={onMonthChange}
-      showTodayButton
+      // showTodayButton
       // disabledOpacity={1}
       theme={todayBtnTheme.current}
       // todayBottomMargin={16}

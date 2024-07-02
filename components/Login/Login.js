@@ -61,8 +61,8 @@ const LoginScreen = () => {
           expires: null, 
         })
         setLoading(false);
-        NativeModules.DevSettings.reload();
-        // navigation.navigate("MainNav");
+        // NativeModules.DevSettings.reload();
+        navigation.navigate("MainNav");
         console.log('Login successful:', data);
       })
       .catch(error => {

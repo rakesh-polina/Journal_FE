@@ -26,7 +26,7 @@ import storage from '../../src/storage';
 
 function CreateEvent({ route, navigation }) {
   
-  const { email, curlocation, event } = route.params || {}; // Get email and event from route params
+  const { email, event, formattedDate } = route.params || {}; // Get email and event from route params
   const [selectedMood, setSelectedMood] = useState(event ? event.mood : 2);
   const [title, setTitle] = useState(event ? event.title : '');
   const [note, setNote] = useState(event ? event.note : '');
@@ -126,9 +126,11 @@ function CreateEvent({ route, navigation }) {
       return;
     }
 
+    // might need to use redux
+
     const path = Platform.select({
       ios: 'hello.m4a',
-      android: 'sdcard/hello.mp4',
+      android: 'sdcard/hello.mp3',
     });
 
     setRecording(true);
@@ -169,18 +171,18 @@ function CreateEvent({ route, navigation }) {
 
   const handleSave = async () => {
     // setIsPressed(true);
-    const currentDate = new Date();
+    const currentDate = formattedDate;   
     // Construct the date in UTC time
-    const year = currentDate.getUTCFullYear();
-    const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(currentDate.getUTCDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
-    const eventData = { title, mood: selectedMood, note, date: formattedDate, email, bookmark, location };
+    // const year = currentDate.getUTCFullYear();
+    // const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    // const day = String(currentDate.getUTCDate()).padStart(2, '0');
+    // const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
+    const eventData = { title, mood: selectedMood, note, date: currentDate, email, bookmark, location };
 
     try {
       if (editing) {
-        setEditing(false);
         await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
+        setEditing(false);
       } else {
         await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
       }
@@ -196,6 +198,10 @@ function CreateEvent({ route, navigation }) {
 
   const handleIconPress = (onPress) => {
     onPress(); // Call the respective onPress function
+  };
+
+  const handleBookmark  = () => {
+    setBookmark((prev) => !prev);
   };
 
   
@@ -276,6 +282,9 @@ function CreateEvent({ route, navigation }) {
           <TouchableOpacity style={styles.setButton} onPress={handleSave}>
             <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.bookmarkButton} onPress={handleBookmark}>
+            <Image source={bookmark? require('../../assets/icons/bookmark.png') : require('../../assets/icons/bookmark-outline.png')} style={styles.bookmark} tintColor={theme.primary}/>
+          </TouchableOpacity>
 
         </View>
     </SafeAreaView>
@@ -316,18 +325,38 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     paddingBottom: 10, 
+    flexDirection: 'row',
+    // display: 'flex',
   },
   setButton: {
     backgroundColor: theme.primary,
     borderRadius: 30,
     padding: 10,
     alignItems: 'center',
-    width: 250,
+    // width: 250,
     elevation: 3,
+    marginHorizontal: 10,
+    flex: 4,
   },
   setButtonText: {
     fontSize: 22,
     color: '#ffffff',
+  },
+  bookmarkButton: {
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: theme.primary,
+    padding: 5,
+    marginHorizontal: 10,
+    alignItems: 'center',
+    elevation: 3,
+    flex: 1,
+  },
+  bookmark: {
+    height: 35,
+    width: 35,
+
   },
   moodContainer: {
     flexDirection: 'row',
