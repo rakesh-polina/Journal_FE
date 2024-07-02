@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, Na
 import { useNavigation } from '@react-navigation/native';
 import { API_ENDPOINTS } from '../../src/config';
 import storage from '../../src/storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
 
@@ -13,7 +14,6 @@ const LoginScreen = () => {
 
 
   const navigation = useNavigation();
-
   const handleLogin = () => {
     // Perform input validation
     if (!email.trim() || !password.trim()) {
@@ -73,7 +73,57 @@ const LoginScreen = () => {
         Alert.alert('Error', error.message);
       });
   };
+  // const handleLogin = async () => {
+  //   // Perform input validation
+  //   if (!email.trim() || !password.trim()) {
+  //     Alert.alert('Error', 'Please enter both username and password');
+  //     return;
+  //   }
+  //   setLoading(true);
 
+  //   const requestData = JSON.stringify({ email, password });
+  //   console.log('Request Body:', requestData);
+
+  //   try {
+  //     const response = await fetch(API_ENDPOINTS.LOGIN, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Invalid credentials');
+  //     }
+
+  //     const data = await response.json();
+  //     const { user } = data; // Extracting user data from the response
+
+  //     // Storing user data in AsyncStorage
+  //     await AsyncStorage.setItem('loginState', JSON.stringify({
+  //       name: user.name,
+  //       username: user.username,
+  //       phone: user.phone,
+  //       bday: user.bday,
+  //       email: email,
+  //       token: data.token, // Assuming your API returns a token
+  //     }));
+
+  //     setLoading(false);
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: 'MainNav' }],
+  //     });
+  //     console.log('Login successful:', data);
+  //   } catch (error) {
+  //     // Handle authentication error
+  //     setLoading(false);
+  //     console.error('Login failed:', error);
+  //     setError(error.message);
+  //     Alert.alert('Error', error.message);
+  //   }
+  // };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>

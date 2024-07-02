@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import debounce from 'lodash.debounce';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { setEventState, resetEventState } from '../../src/slices/eventSlice';
 import { API_ENDPOINTS } from '../../src/config';
 
 import Event from '../cards/event';
@@ -25,12 +27,24 @@ import theme from '../../styles/theme';
 import storage from '../../src/storage';
 import ExCalendar from './ExCalendar';
 import SearchHeader from './SearchHeader';
+import SearchHeader from './SearchHeader';
 
 function Home({navigation, route}) {
   const  email  = route.params.email;
+  const [markedDates, setMarkedDates] = useState({});
   const [ date, setDate] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state
+  // const formattedDate =  formatDate(date);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      dispatch(resetEventState());
+    });
+
+    return unsubscribe;
+  }, [dispatch, navigation]);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true); // Start loading
@@ -48,15 +62,64 @@ function Home({navigation, route}) {
     }
   }, [email, date]);
 
+  const getMarkedDates = useCallback(async () => {
+    try {
+      const response = await axios.get(API_ENDPOINTS.GET_DATES_MODE(email));
+      const data = response.data;
+  
+      const moodColors = {
+        0: 'red',
+        1: 'orange',
+        2: 'blue',
+        3: 'yellow',
+        4: 'pink'
+      };
+  
+      const markedDates = data.reduce((acc, { _id: date, mood }) => {
+        acc[date] = { marked: true, dotColor: moodColors[mood] };
+        return acc;
+      }, {});
+
+      // console.log(markedDates);
+
+      const transformed = {};
+  
+      Object.keys(markedDates).forEach((key) => {
+        const date = new Date(key);
+        const formattedDate = date.toISOString().split('T')[0];
+        transformed[formattedDate] = {
+          marked: markedDates[key].marked,
+          dotColor: markedDates[key].dotColor
+        };
+      });
+  // console.log(transformed);
+  setMarkedDates(transformed);
+  
+      // return markedDates;
+    } catch (error) {
+      console.error('Error fetching marked dates:', error);
+      setMarkedDates({});
+    }
+  }, [email]);
+
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    getMarkedDates();
+  }, [getMarkedDates]);
 
   useFocusEffect(
     useCallback(() => {
       fetchEvents();
     }, [fetchEvents])
   );
+
+  const handleAddEvent = () => {
+    const formattedDate = formatDate(date);
+    navigation.navigate('CreateEvent', { email, formattedDate });
+  };
 
   const handleEdit = (event) => {
     navigation.navigate('CreateEvent', { 
@@ -92,7 +155,7 @@ function Home({navigation, route}) {
             contentInsetAdjustmentBehavior="automatic"
             contentContainerStyle={styles.scrollContainer}>
 
-          <ExCalendar onDateChange={setDate} style={styles.exCalendar} />
+          <ExCalendar onDateChange={setDate} markedDates={markedDates} style={styles.exCalendar} />
             
             <View style={styles.eventContainer}>
             {loading ? (
@@ -115,7 +178,7 @@ function Home({navigation, route}) {
       <View style={styles.addContainer}>
         <TouchableOpacity 
           style={styles.addButton} 
-          onPress={() => navigation.navigate('CreateEvent', { formattedDate })}
+          onPress={handleAddEvent}
           // onPress={() => navigation.navigate('CreateEvent', { email })}
         >
           <Image source={require('../../assets/icons/plus.png')} style={{tintColor:'#fff'}}/>

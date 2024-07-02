@@ -6,7 +6,8 @@ const leftArrowIcon = require('../../assets/icons/previous.png');
 const rightArrowIcon = require('../../assets/icons/next.png');
 
 const ExCalendar = (props) => {
-  const {weekView, onDateChange} = props;
+  const {weekView, onDateChange, markedDates} = props;
+  // console.log('In calendar', markedDates)
   const todayBtnTheme = useRef({
     todayButtonTextColor: '#00aaff'
   });
@@ -23,15 +24,6 @@ const ExCalendar = (props) => {
     [onDateChange, initialDate]
   );
 
-  // const onMonthChange = useCallback(({dateString}) => {
-  //   console.log('ExpandableCalendarScreen onMonthChange: ', dateString);
-  //   if (onDateChange && dateString !== initialDate) {
-  //     onDateChange(dateString);
-  //   }
-  //   },
-  //   [onDateChange, initialDate]
-  // );
-
   return (
     <CalendarProvider
       date={initialDate}
@@ -43,7 +35,7 @@ const ExCalendar = (props) => {
       // todayBottomMargin={16}
     >
       {weekView ? (
-        <WeekCalendar testID='weekCalendar' firstDay={1} />
+        <WeekCalendar testID='weekCalendar' firstDay={1} markedDates={markedDates} />
       ) : (
         <ExpandableCalendar
           testID='expandableCalendar'
@@ -55,6 +47,7 @@ const ExCalendar = (props) => {
           leftArrowImageSource={leftArrowIcon}
           rightArrowImageSource={rightArrowIcon}
           animateScroll
+          markedDates={markedDates}
         />
       )}
 

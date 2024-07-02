@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, Platform} from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_ENDPOINTS } from '../../src/config';
 
@@ -15,30 +15,30 @@ const ProfilePicture = ({ route, navigation }) => {
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else {
-        setPhoto(response.assets[0]);
         console.log(response.assets[0])
+        const selectedPhoto = response.assets[0];
+        setPhoto(selectedPhoto);
+        handleUploadPhoto(selectedPhoto); 
       }
     });
   };
 
-  const handleUploadPhoto = () => {
-    if (!photo) {
+  const handleUploadPhoto = (selectedPhoto) => {
+    if (!selectedPhoto) {
+      console.log("not this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
       navigation.navigate('MainNav');
       return;
     }
 
+    console.log("entered")
+
     const formData = new FormData();
     formData.append('email', email);  // Append email to the form data
     formData.append('profilePicture', {
-      name: photo.fileName,
-      type: photo.type,
-      uri: Platform.OS === 'ios' ? photo.uri.replace('file://', '') : photo.uri,
+      name: selectedPhoto.fileName,
+      type: selectedPhoto.type,
+      uri: Platform.OS === 'ios' ? selectedPhoto.uri.replace('file://', '') : selectedPhoto.uri,
     });
-    console.log("In handle upload photo")
-    console.log(photo.fileName)
-    console.log(photo.type)
-    console.log(photo.uri)
-    console.log(formData.ProfilePicture)
 
     fetch(API_ENDPOINTS.UPLOAD_PROFILE_PICTURE(email), {
       method: 'POST',
@@ -55,13 +55,17 @@ const ProfilePicture = ({ route, navigation }) => {
       })
       .then(data => {
         console.log('Profile picture uploaded successfully:', data);
-        navigation.navigate('MainNav');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainNav' }],
+        });
       })
       .catch(error => {
         console.error('Error uploading profile picture:', error);
         Alert.alert('Error', 'Failed to upload profile picture. Please try again.');
       });
   };
+
 
   return (
     <View style={styles.container}>
@@ -79,11 +83,6 @@ const ProfilePicture = ({ route, navigation }) => {
         </View>
       )}
       <TouchableOpacity
-        style={styles.uploadButton}
-        onPress={handleUploadPhoto}>
-        <Text style={styles.uploadButtonText}>Upload Photo</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
         style={styles.skipButton}
         onPress={() => navigation.navigate('MainNav')}>
         <Text style={styles.skipButtonText}>Skip</Text>
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: 'black',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
@@ -123,17 +122,6 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     marginBottom: 20,
   },
-  uploadButton: {
-    backgroundColor: 'gray',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  uploadButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   skipButton: {
     backgroundColor: 'gray',
     padding: 10,
@@ -145,5 +133,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
 
 export default ProfilePicture;

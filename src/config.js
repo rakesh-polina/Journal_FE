@@ -3,7 +3,7 @@ const BASE_URL = 'http://192.168.1.254:3001';
 
 
 export const API_ENDPOINTS = {
-  USERS: `${BASE_URL}/users/`,
+  CREATE_USER: `${BASE_URL}/users/`,
   LOGIN: `${BASE_URL}/users/login`,
   USER: (email) => `${BASE_URL}/users/${email}`,
   UPLOAD_PROFILE_PICTURE: (email) => `${BASE_URL}/users/upload-profile-picture/${email}`,
@@ -13,11 +13,15 @@ export const API_ENDPOINTS = {
   MODIFY_REMINDER: (id) => `${BASE_URL}/reminders/${id}`,
   SEARCH_REMINDER: (email) => `${BASE_URL}/reminders/search/${email}`,
 
+  SEARCH_REMINDER: (email) => `${BASE_URL}/reminders/search/${email}`,
+
 
   GET_EVENTS_BY_DATE: (email,date) => `${BASE_URL}/events/${email}/${date}`,
   UPDATE_EVENT: (id) => `${BASE_URL}/events/${id}`,
   CREATE_EVENT: `${BASE_URL}/events`,
   DELETE_EVENT: (id) => `${BASE_URL}/events/${id}`,
+  GET_DATES_MODE: (email) => `${BASE_URL}/events/dates/${email}`,
+  UPLOAD_FILES: (eventId) => `${BASE_URL}/events/${eventId}/upload`,
   SEARCH_EVENTS: (email) => `${BASE_URL}/events/search-filter/${email}`,
 
 };

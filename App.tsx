@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import Icon from 'react-native-vector-icons/Ionicons'; // Import the Icon component
-import Ionicons from '@react-native-vector-icons/ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Calendar from './components/Calendar';
 import Home from './components/Home/Home';
 import Reminder from './components/Reminder/Reminder';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';   
 import CreateUser from './components/Login/CreateUser';
 import LoginScreen from './components/Login/Login';
 import Password from './components/Login/Password';
@@ -21,6 +20,8 @@ import Profile from './components/Profile';
 import HeaderButton from './components/cards/headerButton';
 
 import storage from './src/storage';
+import { Provider } from 'react-redux';
+import store from './src/store'
 import theme from './styles/theme';
 import { RootStackParamList } from './src/types';
 import ProfilePicUpload from './components/Login/ProfilePicture';
@@ -59,7 +60,7 @@ const CalendarNav = () => {
 
 const ReminderNav = () => {
     const [email, setEmail] = useState('');
-
+  
     useEffect(() => {
         // Fetch the username from storage
         storage.load({
@@ -81,7 +82,7 @@ const ReminderNav = () => {
                     break;
             }
         });
-    }, []); // Empty dependency array to run this effect only once
+    }, []); 
 
     // Render the navigator once the email is fetched
     return email ? (
@@ -113,7 +114,7 @@ const ReminderNav = () => {
 
 const HomeNav = () => {
     const [email, setEmail] = useState('');
-
+  
     useEffect(() => {
         // Fetch the username from storage
         storage.load({
@@ -135,7 +136,7 @@ const HomeNav = () => {
                     break;
             }
         });
-    }, []); // Empty dependency array to run this effect only once
+    }, []);
 
     // Render the navigator once the email is fetched
     return email ? (
@@ -266,8 +267,7 @@ const App = () => {
     }
     
     return (
-        // <Calendar/>
-        // <GestureHandlerRootView style={{ flex: 1 }}>
+        <Provider store={store}>
         <NavigationContainer>
             {!loggedIn ? (
                 <Stack.Navigator
@@ -302,7 +302,7 @@ const App = () => {
                 <MainNav />
             )}
         </NavigationContainer>
-        // </GestureHandlerRootView>
+        </Provider>
     );
 }
 
