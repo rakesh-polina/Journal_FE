@@ -350,7 +350,7 @@ function CreateEvent({ route, navigation }) {
   
       if (editing) {
         savedEvent = await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
-        setEditing(false);
+        // setEditing(false);
       } else {
         savedEvent = await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
       }

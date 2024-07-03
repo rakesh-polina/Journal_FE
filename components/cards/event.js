@@ -19,7 +19,10 @@ const Event = ({ event, onEdit, onDelete }) => {
 
   return (
     <View style={styles.card}>
-      {event.bookmark? <Image source={require('../../assets/icons/bookmark.png')} tintColor={theme.primary} style={styles.bookmark}/> : null}
+        {event.bookmark? <Image source={require('../../assets/icons/bookmark.png')} tintColor={theme.primary} style={styles.bookmark}/> : null}
+        <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(event._id)}>
+          <Image source={require('../../assets/icons/cross_2.png')} style={{width: 23, height: 23, tintColor:theme.error}}/>
+        </TouchableOpacity>
       <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(event)}>
         <Text style={styles.note} numberOfLines={2} ellipsizeMode='tail'>
           {event.title}
@@ -30,9 +33,9 @@ const Event = ({ event, onEdit, onDelete }) => {
           </Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(event._id)}>
+      <View style={styles.moodIndicator}>
         <Image source={source} style={{width: 25, height: 25, tintColor:selectedColor}}/>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -71,7 +74,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     paddingRight: 50,
   },
-  deleteButton: {
+  moodIndicator: {
     position: 'absolute',
     bottom: 10,
     right: 10,
@@ -81,7 +84,15 @@ const styles = StyleSheet.create({
     width: 20,
     position: 'absolute',
     top: 0,
-    right: 15,
+    right: 25,
+  },
+  deleteButton:{
+    height: 20,
+    width: 20,
+    position: 'absolute',
+    top: 0,
+    right: 5,
+    zIndex: 99,
   },
 });
 
