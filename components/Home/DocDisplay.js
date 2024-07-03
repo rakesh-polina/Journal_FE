@@ -3,20 +3,30 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 const DocDisplay = ({ docs, onRemove }) => {
-  console.log('docs are ', docs)
+  console.log('docs are ', docs);
+
+  const extractFilename = (uri) => {
+    return uri.split('/').pop();
+  };
+  
   return (
     <View style={styles.docsContainer}>
-      {docs.map((doc, index) => (
-        <View key={index} style={styles.docItemContainer}>
-          <Text style={styles.docItem}>{doc.name}</Text>
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => onRemove(index)}
-          >
-            <Text style={styles.removeIcon}>✕</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
+      {docs.map((doc, index) => {
+        // Ensure doc has a name field
+        const docName = doc.name || extractFilename(doc.uri);
+
+        return (
+          <View key={index} style={styles.docItemContainer}>
+            <Text style={styles.docItem}>{docName}</Text>
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={() => onRemove(index)}
+            >
+              <Text style={styles.removeIcon}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })}
     </View>
   );
 };

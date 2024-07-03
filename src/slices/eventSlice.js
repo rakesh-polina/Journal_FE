@@ -27,10 +27,15 @@ const eventSlice = createSlice({
             note: event.note,
             location: event.location,
             bookmark: event.bookmark,
-            selectedMedia: [...event.media.image, ...event.media.video],
-            selectedDocs: event.media.documents,
-            recordedAudio: event.media.voice.length > 0 ? event.media.voice[0] : null,
-            editing: false,
+            selectedMedia: event && event.media
+            ? [
+                ...(event.media.image ? event.media.image.map(uri => ({ type: 'image/jpeg', uri })) : []),
+                ...(event.media.video ? event.media.video.map(uri => ({ type: 'video/mp4', uri })) : [])
+              ]
+            : [],
+            selectedDocs: event && event.media && event.media.documents ? event.media.documents.map(uri => ({ type: 'application/pdf', uri })) : [],
+            recordedAudio: event && event.media && event.media.voice && event.media.voice.length > 0 ? { type: 'audio/mpeg', uri: event.media.voice[0] } : null,
+            editing: event? true : false,
           };
         } else {
           // If payload contains individual field updates

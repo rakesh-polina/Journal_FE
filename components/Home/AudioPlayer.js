@@ -7,6 +7,7 @@ import Slider from '@react-native-community/slider';
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
 const AudioPlayer = ({ recordedAudio, onDeleteRecordedAudio }) => {
+    console.log ('voice is', recordedAudio);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentPositionSec, setCurrentPositionSec] = useState(0);
     const [currentDurationSec, setCurrentDurationSec] = useState(0);
