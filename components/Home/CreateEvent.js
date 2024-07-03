@@ -19,8 +19,6 @@ import theme from '../../styles/theme';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { setEventState, resetEventState } from '../../src/slices/eventSlice';
-import { connect } from 'react-redux';
-
 import { API_ENDPOINTS } from '../../src/config';
 import axios from 'axios';
 
@@ -130,10 +128,14 @@ function CreateEvent({ route, navigation }) {
   const [clusters, setClusters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  // console.log(selectedMedia);
+  const [isSaving, setIsSaving] = useState(false); // State to track if saving is in progress
 
   const audioRecorderPlayer = useRef(new AudioRecorderPlayer()).current;
   const [recordSecs, setRecordSecs] = useState(0);
   const [recordTime, setRecordTime] = useState('00:00:00');
+  const [playTime, setPlayTime] = useState('00:00:00');
+  const [duration, setDuration] = useState('00:00:00');
   const [isRecording, setIsRecording] = useState(false);
   // const [currentPositionSec, setCurrentPositionSec] = useState(0);
   // const [currentDurationSec, setCurrentDurationSec] = useState(0);
@@ -340,7 +342,7 @@ function CreateEvent({ route, navigation }) {
   ];
 
   const handleSave = async () => {
-    // setIsPressed(true);
+    setIsSaving(true);
     const currentDate = formattedDate;   
    
     const eventData = { title, mood: selectedMood, note: note || '', date: currentDate, email, bookmark, location: location || '' };
@@ -350,7 +352,7 @@ function CreateEvent({ route, navigation }) {
   
       if (editing) {
         savedEvent = await axios.put(API_ENDPOINTS.UPDATE_EVENT(event._id), eventData);
-        setEditing(false);
+        // setEditing(false);
       } else {
         savedEvent = await axios.post(API_ENDPOINTS.CREATE_EVENT, eventData);
       }
@@ -380,28 +382,38 @@ function CreateEvent({ route, navigation }) {
         formData.append('documents', {
           uri: doc.uri,
           type: 'application/pdf',
-          name: `document_${index}.pdf`
+          name: doc.name
         });
       });
   
       if (recordedAudio) {
+        console.log("recorded", recordedAudio)
         formData.append('voice', {
-          uri: recordedAudio.uri,
+          uri: recordedAudio,
           type: 'audio/mpeg',
           name: `audio.mp3`
         });
       }
 
-      console.log(formData)
-      console.log(eventId)
-  
-      await axios.post(API_ENDPOINTS.UPLOAD_FILES(eventId), formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      formData._parts.forEach(part => {
+        console.log(part[0], part[1]);
       });
+  
+      console.log('Event ID:', eventId);
+  
+      if (formData._parts.length > 0) {
+        await axios.post(API_ENDPOINTS.UPLOAD_FILES(eventId), formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        console.log('No files to upload.');
+      }
   
       navigation.goBack();
     } catch (error) {
       console.error('Error saving event:', error);
+    } finally {
+      setIsSaving(false); // Set saving state to false
     }
   };
   
@@ -526,11 +538,10 @@ function CreateEvent({ route, navigation }) {
 
           {recordedAudio && (
             <AudioPlayer 
-              recordedAudio={recordedAudio} 
+              recordedAudio={typeof recordedAudio === 'string' ? recordedAudio : recordedAudio.uri} 
               onDeleteRecordedAudio={onDeleteRecordedAudio} 
             />
-        )}
-
+          )}
 
           <TouchableOpacity onPress={toggleRecommendations} style={styles.recommendationsButton}>
             <Text style={styles.recommendationsButtonText}>Show Recommendations</Text>
@@ -541,8 +552,8 @@ function CreateEvent({ route, navigation }) {
         </View>
       </ScrollView>
       <View style={styles.setButtonContainer}>
-        <TouchableOpacity style={styles.setButton} onPress={handleSave}>
-          <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>
+      <TouchableOpacity style={styles.setButton} onPress={handleSave} disabled={isSaving}>
+          {isSaving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={styles.bookmarkButton} onPress={handleBookmark}>
             <Image source={bookmark? require('../../assets/icons/bookmark.png') : require('../../assets/icons/bookmark-outline.png')} style={styles.bookmark} tintColor={theme.primary}/>

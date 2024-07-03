@@ -27,7 +27,6 @@ import theme from '../../styles/theme';
 import storage from '../../src/storage';
 import ExCalendar from './ExCalendar';
 import SearchHeader from './SearchHeader';
-import SearchHeader from './SearchHeader';
 
 function Home({navigation, route}) {
   const  email  = route.params.email;
