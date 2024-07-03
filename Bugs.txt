@@ -20,8 +20,26 @@ ex:(Should not be possible to go to login from home)
 
 
 5.
-Something wrong with upload files while updating a event previous uploads are trasged at times. 
+Something wrong with upload files while updating a event previous uploads are trashed at times. 
 
 
+6.
+email -> personal details -> {...}
+      -> date -> events
+ backend structure for storing data
 
-Half of my brain is ferraro rocher, other half is weed
+
+7. 
+email validations while creating account
+
+
+8.
+new controller needs to be defined for updating files. 
+
+
+9.
+create event and upload files are different api's; 
+resulting in success call for one ends up creating event but failure to upload files still persists
+
+
+Half of my brain is ferrero rocher, other half is weed

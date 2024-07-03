@@ -25,7 +25,7 @@ const Reminder = ({ route }) => {
   //search variables
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  // const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
 
@@ -39,8 +39,9 @@ const Reminder = ({ route }) => {
 
   const searchAPI = async (searchQuery) => {
     setLoading(true);
+    console.log(searchQuery);
     try {
-      const response = await axios.get(API_ENDPOINTS.SEARCH_REMINDER(email), {q: searchQuery});
+      const response = await axios.post(API_ENDPOINTS.SEARCH_REMINDER(email), {query: searchQuery});
       setReminders(response.data);
       console.log(response.data)
     } catch (error) {
@@ -55,7 +56,7 @@ const Reminder = ({ route }) => {
     debounce((searchQuery) => {
       searchAPI(searchQuery);
     }, 300), // 300 milliseconds delay
-    []
+    [query]
   );
 
   useEffect(() => {
@@ -68,7 +69,7 @@ const Reminder = ({ route }) => {
     return () => {
       debouncedSearch.cancel();
     };
-  }, [query, debouncedSearch]);
+  }, [query, setQuery, debouncedSearch]);
 
   // useEffect(() => {
   //   fetchReminders();
@@ -106,7 +107,6 @@ const Reminder = ({ route }) => {
             placeholder="Search..."
             value={query}
             onChangeText={setQuery}
-            // Add any additional props or state management for search functionality
             />
           
             </View>) : null}

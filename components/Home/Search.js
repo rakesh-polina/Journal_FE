@@ -8,15 +8,17 @@ import {
   Image,
   TextInput,
   Text,
+  Alert,
   View,
 } from 'react-native';
 import theme from '../../styles/theme';
 import axios from 'axios';
 import debounce from 'lodash.debounce';
 import { API_ENDPOINTS } from '../../src/config';
+import Event from '../cards/event';
 
 
-function Search({route}) {
+function Search({navigation,route}) {
   const { email } = route.params;
 
   const [filtersVisible, setFiltersVisible] = useState(false);
@@ -29,12 +31,41 @@ function Search({route}) {
   const [events, setEvents] = useState([]);
 
   const mood = [
-    { source: require('../../assets/icons/angry.png'), selectedColor: theme.error, id: 'angry' }, // Red
-    { source: require('../../assets/icons/sad.png'), selectedColor: theme.warning, id: 'sad' }, // Green
-    { source: require('../../assets/icons/smile.png'), selectedColor: theme.primary, id: 'smile' }, // Blue
-    { source: require('../../assets/icons/happy.png'), selectedColor: '#F1C40F', id: 'happy' }, // Yellow
-    { source: require('../../assets/icons/heart.png'), selectedColor: '#F08080', id: 'heart' }, // Magenta
+    { source: require('../../assets/icons/angry.png'), selectedColor: theme.error, id: 0 }, // Red
+    { source: require('../../assets/icons/sad.png'), selectedColor: theme.warning, id: 1 }, // Green
+    { source: require('../../assets/icons/smile.png'), selectedColor: theme.primary, id: 2 }, // Blue
+    { source: require('../../assets/icons/happy.png'), selectedColor: '#F1C40F', id: 3 }, // Yellow
+    { source: require('../../assets/icons/heart.png'), selectedColor: '#F08080', id: 4 }, // Magenta
   ];
+
+  const handleEdit = (event) => {
+    navigation.navigate('CreateEvent', { 
+      email, 
+      event 
+    });
+  };
+
+  const handleDelete = (id) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this event?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            await axios.delete(API_ENDPOINTS.DELETE_EVENT(id));
+            fetchEvents();
+          },
+          style: "destructive"
+        }
+      ],
+      { cancelable: true }
+    );
+  };
 
   const toggleFilters = useCallback(() => {
     setFiltersVisible((prev) => !prev);
@@ -150,6 +181,20 @@ function Search({route}) {
           </TouchableOpacity>
         </View>
       )}
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.eventContainer}>
+          {events.map(event => (
+              <Event 
+                key={event._id}
+                event={event}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+              ))}
+        </View>
+      </ScrollView>      
     </SafeAreaView>
   );
 }
@@ -165,6 +210,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 10,
     margin: 10,
+  },
+  scrollContainer: {
+    paddingBottom: 100,
+    position: 'relative',
+    
+  },
+  eventContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    position: 'relative',
   },
   searchBar: {
     flex: 1,
