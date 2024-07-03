@@ -19,6 +19,7 @@ const Event = ({ event, onEdit, onDelete }) => {
 
   return (
     <View style={styles.card}>
+      {event.bookmark? <Image source={require('../../assets/icons/bookmark.png')} tintColor={theme.primary} style={styles.bookmark}/> : null}
       <TouchableOpacity style={styles.editableArea} onPress={() => onEdit(event)}>
         <Text style={styles.note} numberOfLines={2} ellipsizeMode='tail'>
           {event.title}
@@ -74,6 +75,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     right: 10,
+  },
+  bookmark:{
+    height: 20,
+    width: 20,
+    position: 'absolute',
+    top: 0,
+    right: 15,
   },
 });
 

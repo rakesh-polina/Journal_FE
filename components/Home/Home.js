@@ -18,20 +18,32 @@ import {
 } from 'react-native';
 import debounce from 'lodash.debounce';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { setEventState, resetEventState } from '../../src/slices/eventSlice';
 import { API_ENDPOINTS } from '../../src/config';
 
 import Event from '../cards/event';
 import theme from '../../styles/theme';
 import storage from '../../src/storage';
 import ExCalendar from './ExCalendar';
+import SearchHeader from './SearchHeader';
 
 function Home({navigation, route}) {
   const  email  = route.params.email;
   const [markedDates, setMarkedDates] = useState({});
   const [ date, setDate] = useState(new Date());
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state
+  // const formattedDate =  formatDate(date);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      dispatch(resetEventState());
+    });
+
+    return unsubscribe;
+  }, [dispatch, navigation]);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true); // Start loading
@@ -79,8 +91,8 @@ function Home({navigation, route}) {
           dotColor: markedDates[key].dotColor
         };
       });
-// console.log(transformed);
-setMarkedDates(transformed);
+  // console.log(transformed);
+  setMarkedDates(transformed);
   
       // return markedDates;
     } catch (error) {
@@ -103,6 +115,11 @@ setMarkedDates(transformed);
     }, [fetchEvents])
   );
 
+  const handleAddEvent = () => {
+    const formattedDate = formatDate(date);
+    navigation.navigate('CreateEvent', { email, formattedDate });
+  };
+
   const handleEdit = (event) => {
     navigation.navigate('CreateEvent', { 
       email, 
@@ -124,62 +141,44 @@ setMarkedDates(transformed);
     return formattedDate
 
   }
-
-  const toggleFilters = useCallback(() => {
-    console.log('filter');
-  }, []);
-
-  // useCallback ensures that the function is memoized and does not change on every render
-  const toggleSearchBar = useCallback(() => {
-    setIsSearchVisible(prev => !prev);
-  }, []);
-
-  useEffect(() => {
-    // This will only set the params once when the component mounts
-    navigation.setParams({ toggleSearchBar });
-  }, [navigation, toggleSearchBar]);
-
   
   return (
     <SafeAreaView style={styles.safeArea}>
-      {isSearchVisible && (
-         <View style={styles.searchContainer}>
-         <TextInput
-           style={styles.searchBar}
-           placeholder="Search..."
-           // Add any additional props or state management for search functionality
-         />
-         <TouchableOpacity onPress={toggleFilters} style={styles.searchIcon}>
-           <Image source={require('../../assets/icons/filter2.png')} style={styles.icon} />
-         </TouchableOpacity>
-       </View>
-      )}
-
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.scrollContainer}>
-
-      <ExCalendar onDateChange={setDate} markedDates={markedDates} style={styles.exCalendar} />
-         
-        <View style={styles.container}>
-        {loading ? (
-            <ActivityIndicator size="large" color="#00aaff" />
-          ) : (
-            events.map(event => (
-              <Event 
-                key={event._id}
-                event={event}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))
-          )}
+      <SearchHeader componentName="Home"/>
+      {/* <View style={styles.container}>
+        <View style={styles.calendar}>
         </View>
-      </ScrollView>
+        <View style={styles.divider}> */}
+
+          <ScrollView
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={styles.scrollContainer}>
+
+          <ExCalendar onDateChange={setDate} markedDates={markedDates} style={styles.exCalendar} />
+            
+            <View style={styles.eventContainer}>
+            {loading ? (
+                <ActivityIndicator size="large" color="#00aaff" />
+              ) : (
+                events.map(event => (
+                  <Event 
+                    key={event._id}
+                    event={event}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))
+              )}
+            </View>
+          </ScrollView>
+
+        {/* </View>
+      </View> */}
       <View style={styles.addContainer}>
         <TouchableOpacity 
           style={styles.addButton} 
-          onPress={() => navigation.navigate('CreateEvent')}
+          onPress={handleAddEvent}
+          // onPress={() => navigation.navigate('CreateEvent', { email })}
         >
           <Image source={require('../../assets/icons/plus.png')} style={{tintColor:'#fff'}}/>
         </TouchableOpacity>
@@ -194,36 +193,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'flex-start',
   },
-  container: {
+  eventContainer: {
     flex: 1,
     padding: 20,
     position: 'relative',
   },
+  container:{
+    // marginTop: 15,
+    flex: 1,
+    justifyContent: 'flex-start',
+    // padding: 20,
+    // position: 'relative',
+    borderColor: '#ff0000',
+    borderWidth: 2,
+  },
+  calendar:{
+    flex: 1,
+    position: 'relative',
+    borderColor: '#000',
+    borderWidth: 1,
+  },
+
+  divider:{
+    flex: 2,
+    // display: 'flex',
+    // position: 'relative',
+    borderColor: '#000',
+    borderWidth: 1,
+  },
   scrollContainer: {
     paddingBottom: 100,
+    position: 'relative',
+    
   },
   exCalendar:{
-    // position: 'absolute'
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    margin: 10,
-  },
-  searchBar: {
-    flex: 1,
-    height: 40,
-  },
-  searchIcon: {
-    padding: 10,
-  },
+
   addContainer: {
-    flex: 1,
+    // flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },

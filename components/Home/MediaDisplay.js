@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo,  useMemo, useState } from 'react';
 import { View, Image, TouchableOpacity, Modal, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import Video from 'react-native-video';
 
@@ -41,7 +41,7 @@ const MediaDisplay = ({ media, onRemove }) => {
                   />
                 ) : (
                   <Image
-                    source={{ uri }}
+                    source={ {uri }}
                     style={styles.mediaItem}
                     onError={(error) => console.error('Error loading image:', error.nativeEvent.error)}
                     onLoad={handleLoad}
@@ -144,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MediaDisplay;
+export default memo(MediaDisplay);
