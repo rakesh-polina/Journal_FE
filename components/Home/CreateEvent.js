@@ -96,9 +96,19 @@ function CreateEvent({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [editing, setEditing] = useState(event? true : false);
-  const [selectedMedia, setSelectedMedia] = useState(event ? [...event.media.image, ...event.media.video] : []);
-  console.log(selectedMedia);
-  const [selectedDocs, setSelectedDocs] = useState(event ? event.media.documents : []);
+  const [selectedMedia, setSelectedMedia] = useState(
+    event && event.media
+      ? [
+          ...(event.media.image ? event.media.image.map(uri => ({ type: 'image/jpeg', uri })) : []),
+          ...(event.media.video ? event.media.video.map(uri => ({ type: 'video/mp4', uri })) : [])
+        ]
+      : []
+  );
+  // console.log(selectedMedia);
+  const [selectedDocs, setSelectedDocs] = useState(
+    event && event.media && event.media.documents ? event.media.documents.map(uri => ({ type: 'application/pdf', uri })) : []
+  );
+  const [isSaving, setIsSaving] = useState(false); // State to track if saving is in progress
 
   const audioRecorderPlayer = useRef(new AudioRecorderPlayer()).current;
   const [recordSecs, setRecordSecs] = useState(0);
@@ -107,7 +117,9 @@ function CreateEvent({ route, navigation }) {
   const [currentDurationSec, setCurrentDurationSec] = useState(0);
   const [playTime, setPlayTime] = useState('00:00:00');
   const [duration, setDuration] = useState('00:00:00');
-  const [recordedAudio, setRecordedAudio] = useState(event && event.media.voice.length > 0 ? event.media.voice[0] : null);
+  const [recordedAudio, setRecordedAudio] = useState(
+    event && event.media && event.media.voice && event.media.voice.length > 0 ? { type: 'audio/mpeg', uri: event.media.voice[0] } : null
+  );
   const [isRecording, setIsRecording] = useState(false);
 
 
@@ -291,6 +303,7 @@ function CreateEvent({ route, navigation }) {
   ];
 
   const handleSave = async () => {
+    setIsSaving(true);
     const currentDate = new Date();
     const year = currentDate.getUTCFullYear();
     const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0');
@@ -342,28 +355,38 @@ function CreateEvent({ route, navigation }) {
         formData.append('documents', {
           uri: doc.uri,
           type: 'application/pdf',
-          name: `document_${index}.pdf`
+          name: doc.name
         });
       });
   
       if (recordedAudio) {
+        console.log("recorded", recordedAudio)
         formData.append('voice', {
-          uri: recordedAudio.uri,
+          uri: recordedAudio,
           type: 'audio/mpeg',
           name: `audio.mp3`
         });
       }
 
-      console.log(formData)
-      console.log(eventId)
-  
-      await axios.post(API_ENDPOINTS.UPLOAD_FILES(eventId), formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      formData._parts.forEach(part => {
+        console.log(part[0], part[1]);
       });
+  
+      console.log('Event ID:', eventId);
+  
+      if (formData._parts.length > 0) {
+        await axios.post(API_ENDPOINTS.UPLOAD_FILES(eventId), formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        console.log('No files to upload.');
+      }
   
       navigation.goBack();
     } catch (error) {
       console.error('Error saving event:', error);
+    } finally {
+      setIsSaving(false); // Set saving state to false
     }
   };
   
@@ -465,11 +488,10 @@ function CreateEvent({ route, navigation }) {
 
           {recordedAudio && (
             <AudioPlayer 
-              recordedAudio={recordedAudio} 
+              recordedAudio={typeof recordedAudio === 'string' ? recordedAudio : recordedAudio.uri} 
               onDeleteRecordedAudio={onDeleteRecordedAudio} 
             />
-        )}
-
+          )}
 
           <TouchableOpacity onPress={toggleRecommendations} style={styles.recommendationsButton}>
             <Text style={styles.recommendationsButtonText}>Show Recommendations</Text>
@@ -480,8 +502,8 @@ function CreateEvent({ route, navigation }) {
         </View>
       </ScrollView>
       <View style={styles.setButtonContainer}>
-        <TouchableOpacity style={styles.setButton} onPress={handleSave}>
-          <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>
+      <TouchableOpacity style={styles.setButton} onPress={handleSave} disabled={isSaving}>
+          {isSaving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.setButtonText}>{editing ? 'UPDATE EVENT' : 'SAVE'}</Text>}
         </TouchableOpacity>
       </View>
       {showRecommendations && (
