@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Alert,
   Animated, 
   PanResponder,
   ActivityIndicator
@@ -67,11 +68,11 @@ function Home({navigation, route}) {
       const data = response.data;
   
       const moodColors = {
-        0: 'red',
-        1: 'orange',
+        0: theme.error,
+        1: theme.warning,
         2: 'blue',
-        3: 'yellow',
-        4: 'pink'
+        3: '#F1C40F',
+        4: '#F08080'
       };
   
       const markedDates = data.reduce((acc, { _id: date, mood }) => {
@@ -127,9 +128,31 @@ function Home({navigation, route}) {
     });
   };
 
-  const handleDelete = async (id) => {
-    await axios.delete(API_ENDPOINTS.DELETE_EVENT(id));
-    fetchReminders();
+  // const handleDelete = async (id) => {
+  //   await axios.delete(API_ENDPOINTS.DELETE_EVENT(id));
+  //   fetchEvents();
+  // };
+
+  const handleDelete = (id) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this event?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            await axios.delete(API_ENDPOINTS.DELETE_EVENT(id));
+            fetchEvents();
+          },
+          style: "destructive"
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   const formatDate = (date) => {

@@ -1,5 +1,5 @@
 
-const BASE_URL = 'http://10.227.63.223:3001';
+const BASE_URL = 'http://10.227.62.104:3001';
 
 
 export const API_ENDPOINTS = {
@@ -12,6 +12,8 @@ export const API_ENDPOINTS = {
   REMINDERS: (username) => `${BASE_URL}/reminders/${username}`,
   MODIFY_REMINDER: (id) => `${BASE_URL}/reminders/${id}`,
   SEARCH_REMINDER: (email) => `${BASE_URL}/reminders/search/${email}`,
+
+  // SEARCH_REMINDER: (email) => `${BASE_URL}/reminders/search/${email}`,
 
 
   GET_EVENTS_BY_DATE: (email,date) => `${BASE_URL}/events/${email}/${date}`,
