@@ -10,7 +10,6 @@ import {
   View
 } from 'react-native';
 import { API_ENDPOINTS } from '../../src/config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import storage from '../../src/storage';
 
 const Password = ({route,navigation}) => {

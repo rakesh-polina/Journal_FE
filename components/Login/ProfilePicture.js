@@ -7,7 +7,6 @@ const ProfilePicture = ({ route, navigation }) => {
   const [photo, setPhoto] = useState(null);
   const { email } = route.params;
 
-  
   const handleChoosePhoto = async () => {
     await launchImageLibrary({ noData: true }, response => {
       if (response.didCancel) {
@@ -15,29 +14,25 @@ const ProfilePicture = ({ route, navigation }) => {
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else {
-        console.log(response.assets[0])
+        console.log(response.assets[0]);
         const selectedPhoto = response.assets[0];
         setPhoto(selectedPhoto);
-        handleUploadPhoto(selectedPhoto); 
       }
     });
   };
 
-  const handleUploadPhoto = (selectedPhoto) => {
-    if (!selectedPhoto) {
-      console.log("not this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-      navigation.navigate('MainNav');
+  const handleUploadPhoto = () => {
+    if (!photo) {
+      Alert.alert('Error', 'Please select a photo before uploading.');
       return;
     }
 
-    console.log("entered")
-
     const formData = new FormData();
-    formData.append('email', email);  // Append email to the form data
+    formData.append('email', email);
     formData.append('profilePicture', {
-      name: selectedPhoto.fileName,
-      type: selectedPhoto.type,
-      uri: Platform.OS === 'ios' ? selectedPhoto.uri.replace('file://', '') : selectedPhoto.uri,
+      name: photo.fileName,
+      type: photo.type,
+      uri: Platform.OS === 'ios' ? photo.uri.replace('file://', '') : photo.uri,
     });
 
     fetch(API_ENDPOINTS.UPLOAD_PROFILE_PICTURE(email), {
@@ -66,7 +61,6 @@ const ProfilePicture = ({ route, navigation }) => {
       });
   };
 
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Upload Profile Picture</Text>
@@ -82,9 +76,15 @@ const ProfilePicture = ({ route, navigation }) => {
           />
         </View>
       )}
+      <TouchableOpacity onPress={handleUploadPhoto} style={styles.uploadButton}>
+        <Text style={styles.uploadButtonText}>Upload Photo</Text>
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.skipButton}
-        onPress={() => navigation.navigate('MainNav')}>
+        onPress={() => navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainNav' }],
+        })}>
         <Text style={styles.skipButtonText}>Skip</Text>
       </TouchableOpacity>
     </View>
@@ -121,6 +121,17 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     marginBottom: 20,
+  },
+  uploadButton: {
+    backgroundColor: 'gray',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  uploadButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   skipButton: {
     backgroundColor: 'gray',
